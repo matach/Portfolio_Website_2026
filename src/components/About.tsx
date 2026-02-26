@@ -47,12 +47,19 @@ export default function About() {
 
         <div className="about__grid">
           <div className="about__text">
-            <div className="about__photo-frame">
-              <img
-                src={profilePlaceholder}
-                alt="Placeholder portrait for profile photo"
-                className="about__photo"
-              />
+            <div className="about__intro-card">
+              <div className="about__photo-frame">
+                <img
+                  src={profilePlaceholder}
+                  alt="Placeholder portrait for profile photo"
+                  className="about__photo"
+                />
+              </div>
+              <div className="about__intro-copy">
+                <p className="about__intro-kicker">Technical Artist / Realtime</p>
+                <p className="about__intro-title">Open to Technical Artist opportunities</p>
+                <p className="about__intro-meta">Remote-friendly · Rendering · Tools · Pipeline</p>
+              </div>
             </div>
 
             <p>
