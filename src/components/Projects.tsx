@@ -76,8 +76,8 @@ const PROJECTS: Project[] = [
     description:
       "Mobile VFX, procedural skybox tool, and multi-threaded n-body gravity simulation -- multiple TA-style systems built for mobile performance.",
     longDescription:
-      "Asteraid is a game prototype where I developed multiple TA-style systems: VFX shaders for planetary impacts, a procedural skybox generation tool, and a multi-threaded n-body simulation to handle gravity at mobile-friendly performance. This is a production-style performance problem: real-time physics-like computation under tight budgets.",
-    role: "Technical Artist / Gameplay Tech / Tools",
+      "Asteraid is a game prototype where I developed multiple systems: VFX shaders for planetary impacts, a procedural skybox generation tool, and a multi-threaded n-body simulation to handle gravity at mobile-friendly performance. This is a production-style performance problem: real-time physics-like computation under tight budgets.",
+    role: "Technical Artist / Gameplay Programming / Tools",
     year: "2022",
     status: "Prototype",
     features: [
