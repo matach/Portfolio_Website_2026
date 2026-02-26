@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import profilePlaceholder from "../assets/profile-placeholder.svg";
 
 const SKILLS = [
   { name: "Unity (tooling, editor scripting, runtime)", level: 90 },
@@ -46,6 +47,21 @@ export default function About() {
 
         <div className="about__grid">
           <div className="about__text">
+            <div className="about__intro-card">
+              <div className="about__photo-frame">
+                <img
+                  src={profilePlaceholder}
+                  alt="Placeholder portrait for profile photo"
+                  className="about__photo"
+                />
+              </div>
+              <div className="about__intro-copy">
+                <p className="about__intro-kicker">Technical Artist / Realtime</p>
+                <p className="about__intro-title">Open to Technical Artist opportunities</p>
+                <p className="about__intro-meta">Remote-friendly · Rendering · Tools · Pipeline</p>
+              </div>
+            </div>
+
             <p>
               I'm a Technical Artist focused on real-time rendering, tools, and
               performance. I enjoy building systems that help teams iterate
@@ -95,4 +111,3 @@ export default function About() {
     </section>
   );
 }
-
