@@ -1,111 +1,94 @@
-import { useRef, useState, useEffect } from "react";
 import profilePlaceholder from "../assets/profile-placeholder.svg";
 
-const SKILLS = [
-  { name: "Unity (tooling, editor scripting, runtime)", level: 90 },
-  { name: "Shaders (Shader Graph + HLSL)", level: 88 },
-  { name: "Performance Profiling & Optimization", level: 85 },
-  { name: "C#", level: 85 },
-  { name: "Pipeline & Validation", level: 82 },
+const CAPABILITIES = [
+  "Unity gameplay + tooling (C#)",
+  "Shader development (Shader Graph + HLSL)",
+  "Performance profiling + optimization",
+  "Pipeline automation + validation",
 ];
 
-function AsciiBar({ level }: { level: number }) {
-  const filled = Math.round(level / 10);
-  const empty = 10 - filled;
-  return (
-    <span className="skill-bar__ascii">
-      [{"#".repeat(filled)}{".".repeat(empty)}]
-    </span>
-  );
-}
+const WORK_STYLE = [
+  "Translate visual goals into technical plans that ship on time.",
+  "Build artist-friendly tools to reduce repetitive scene and asset setup.",
+  "Document decisions so engineering, art, and design stay aligned.",
+  "Prototype quickly, then harden systems for production reliability.",
+];
+
+const CURRENT_FOCUS = [
+  "Junior Technical Artist",
+  "Junior Game Developer",
+  "Tools / Rendering Support",
+  "Real-time Pipeline Assistance",
+];
 
 export default function About() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section className="about" id="about" ref={ref}>
+    <section className="about" id="about">
       <div className="section-container">
         <p className="section-label">About Me</p>
         <h2 className="section-title">About</h2>
 
-        <div className="about__grid">
-          <div className="about__text">
-            <div className="about__intro-card">
+        <div className="about__layout">
+          <article className="about__panel about__panel--intro">
+            <header className="about__header">
               <div className="about__photo-frame">
                 <img
                   src={profilePlaceholder}
-                  alt="Placeholder portrait for profile photo"
+                  alt="Profile placeholder"
                   className="about__photo"
                 />
               </div>
-              <div className="about__intro-copy">
-                <p className="about__intro-kicker">Technical Artist / Realtime</p>
-                <p className="about__intro-title">Open to Technical Artist opportunities</p>
-                <p className="about__intro-meta">Remote-friendly · Rendering · Tools · Pipeline</p>
+              <div>
+                <p className="about__kicker">Junior Candidate · Technical Art + Gameplay</p>
+                <p className="about__role">Building practical tools and polished real-time visuals</p>
+                <p className="about__meta">Open to internships / junior roles · Remote or hybrid</p>
               </div>
+            </header>
+
+            <div className="about__body">
+              <p>
+                I&apos;m a junior-level technical artist and game developer focused on the
+                space between art direction and engineering delivery. I enjoy taking a
+                visual target, understanding its performance cost, and building a clean
+                path for teams to implement it confidently.
+              </p>
+              <p>
+                My goal in every project is simple: make the game look better, run
+                better, and be easier to work on for the next person.
+              </p>
             </div>
+          </article>
 
-            <p>
-              I'm a Technical Artist focused on real-time rendering, tools, and
-              performance. I enjoy building systems that help teams iterate
-              faster -- whether that's a shader that's easy to art-direct, an
-              editor tool that reduces friction, or an optimization pass that
-              turns "too slow" into shippable.
-            </p>
-            <p>
-              I'm most comfortable working at the intersection of art and
-              engineering: translating creative goals into robust real-time
-              solutions and communicating constraints clearly.
-            </p>
-            <p>
-              Interested in Technical Artist roles that involve shader work,
-              tools, or rendering/pipeline support.
-            </p>
-
-            <div className="about__stats">
-              <div className="about__stat">
-                <span className="about__stat-number">50+</span>
-                <span className="about__stat-label">Shaders Created</span>
-              </div>
-              <div className="about__stat">
-                <span className="about__stat-number">8+</span>
-                <span className="about__stat-label">Years Experience</span>
-              </div>
-              <div className="about__stat">
-                <span className="about__stat-number">12</span>
-                <span className="about__stat-label">Shipped Titles</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="about__skills">
-            <h3 className="about__skills-title">Core Skills</h3>
-            {visible &&
-              SKILLS.map((skill) => (
-                <div key={skill.name} className="skill-bar">
-                  <span className="skill-bar__name">{skill.name}</span>
-                  <AsciiBar level={skill.level} />
-                  <span className="skill-bar__level">{skill.level}%</span>
-                </div>
+          <article className="about__panel">
+            <h3 className="about__panel-title">Core Capability</h3>
+            <ul className="about__list">
+              {CAPABILITIES.map((item) => (
+                <li key={item}>{item}</li>
               ))}
-          </div>
+            </ul>
+          </article>
+
+          <article className="about__panel">
+            <h3 className="about__panel-title">How I Work</h3>
+            <ul className="about__list">
+              {WORK_STYLE.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+
+          <article className="about__panel about__panel--focus">
+            <h3 className="about__panel-title">Current Search</h3>
+            <ul className="about__tags">
+              {CURRENT_FOCUS.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <p className="about__footnote">
+              Available for junior studio roles where I can support production,
+              contribute to gameplay systems, and grow under experienced mentors.
+            </p>
+          </article>
         </div>
       </div>
     </section>
