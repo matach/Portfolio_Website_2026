@@ -828,6 +828,20 @@ img {
   align-items: start;
 }
 
+
+.about__photo-frame {
+  border: var(--rule) solid var(--fg);
+  background: #050505;
+  margin-bottom: 28px;
+  max-width: 280px;
+}
+
+.about__photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
 .about__text p {
   color: var(--fg-dim);
   margin-bottom: 20px;
@@ -1159,6 +1173,12 @@ img {
 
   .about__stats {
     flex-wrap: wrap;
+  }
+
+  .about__photo-frame {
+    max-width: 220px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .contact__form-row {

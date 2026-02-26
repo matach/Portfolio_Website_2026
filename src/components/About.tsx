@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import profilePlaceholder from "../assets/profile-placeholder.svg";
 
 const SKILLS = [
   { name: "Unity (tooling, editor scripting, runtime)", level: 90 },
@@ -46,6 +47,14 @@ export default function About() {
 
         <div className="about__grid">
           <div className="about__text">
+            <div className="about__photo-frame">
+              <img
+                src={profilePlaceholder}
+                alt="Placeholder portrait for profile photo"
+                className="about__photo"
+              />
+            </div>
+
             <p>
               I'm a Technical Artist focused on real-time rendering, tools, and
               performance. I enjoy building systems that help teams iterate
@@ -95,4 +104,3 @@ export default function About() {
     </section>
   );
 }
-
