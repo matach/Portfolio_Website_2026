@@ -828,40 +828,55 @@ img {
   align-items: start;
 }
 
-.about__text p {
+.about__identity {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  border: var(--rule) solid var(--fg);
+  margin-bottom: 22px;
+}
+
+.about__photo-frame {
+  border-right: var(--rule) solid var(--fg);
+  background: #050505;
+}
+
+.about__photo {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+
+.about__identity-meta {
+  display: grid;
+  align-content: center;
+}
+
+.about__identity-line {
+  margin: 0;
+  padding: 10px 14px;
+  color: var(--fg-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: var(--rule) solid var(--border-dim);
+}
+
+.about__identity-line:last-child {
+  border-bottom: none;
+}
+
+.about__copy-block {
+  border-left: var(--rule) solid var(--fg);
+  padding-left: 18px;
+}
+
+.about__copy-block p {
   color: var(--fg-dim);
   margin-bottom: 20px;
   font-size: 0.95rem;
   line-height: 1.7;
 }
-
-.about__stats {
-  display: flex;
-  gap: 24px;
-  margin-top: 40px;
-}
-
-.about__stat {
-  display: flex;
-  flex-direction: column;
-  border: var(--rule) solid var(--fg);
-  padding: 16px 20px;
-}
-
-.about__stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--fg);
-}
-
-.about__stat-label {
-  font-size: 0.8rem;
-  color: var(--fg-dim);
-  margin-top: 4px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
 .about__skills-title {
   font-size: 1rem;
   font-weight: 700;
@@ -1159,6 +1174,21 @@ img {
 
   .about__stats {
     flex-wrap: wrap;
+  }
+
+  .about__identity {
+    grid-template-columns: 1fr;
+  }
+
+  .about__photo-frame {
+    border-right: none;
+    border-bottom: var(--rule) solid var(--fg);
+    max-width: 260px;
+    margin: 0 auto;
+  }
+
+  .about__copy-block {
+    padding-left: 14px;
   }
 
   .contact__form-row {

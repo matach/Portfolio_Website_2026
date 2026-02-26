@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import profilePlaceholder from "../assets/profile-placeholder.svg";
 
 const SKILLS = [
   { name: "Unity (tooling, editor scripting, runtime)", level: 90 },
@@ -46,22 +47,40 @@ export default function About() {
 
         <div className="about__grid">
           <div className="about__text">
-            <p>
-              I'm a Technical Artist focused on real-time rendering, tools, and
-              performance. I enjoy building systems that help teams iterate
-              faster -- whether that's a shader that's easy to art-direct, an
-              editor tool that reduces friction, or an optimization pass that
-              turns "too slow" into shippable.
-            </p>
-            <p>
-              I'm most comfortable working at the intersection of art and
-              engineering: translating creative goals into robust real-time
-              solutions and communicating constraints clearly.
-            </p>
-            <p>
-              Interested in Technical Artist roles that involve shader work,
-              tools, or rendering/pipeline support.
-            </p>
+            <div className="about__identity">
+              <div className="about__photo-frame">
+                <img
+                  src={profilePlaceholder}
+                  alt="Placeholder portrait for profile photo"
+                  className="about__photo"
+                />
+              </div>
+              <div className="about__identity-meta">
+                <p className="about__identity-line">Role: Technical Artist</p>
+                <p className="about__identity-line">Focus: Realtime Rendering + Tools</p>
+                <p className="about__identity-line">Status: Open to Opportunities</p>
+                <p className="about__identity-line">Location: Remote / Hybrid</p>
+              </div>
+            </div>
+
+            <div className="about__copy-block">
+              <p>
+                I'm a Technical Artist focused on real-time rendering, tools,
+                and performance. I enjoy building systems that help teams
+                iterate faster -- whether that's a shader that's easy to
+                art-direct, an editor tool that reduces friction, or an
+                optimization pass that turns "too slow" into shippable.
+              </p>
+              <p>
+                I'm most comfortable working at the intersection of art and
+                engineering: translating creative goals into robust real-time
+                solutions and communicating constraints clearly.
+              </p>
+              <p>
+                Interested in Technical Artist roles that involve shader work,
+                tools, or rendering/pipeline support.
+              </p>
+            </div>
 
             <div className="about__stats">
               <div className="about__stat">
@@ -95,4 +114,3 @@ export default function About() {
     </section>
   );
 }
-
