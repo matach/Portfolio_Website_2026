@@ -83,7 +83,7 @@ const PROJECTS: Project[] = [
     longDescription:
       "Archangel is a short narrative VR experience set in a World War I trench system. I was responsible for level design, shaping the pacing and environmental storytelling across the game's four gameplay sections. I also contributed to early conceptual development and created the custom fullscreen shader that gives the game its distinctive painted visual style.",
     role: "Level Designer + Technical Artist (Fullscreen Shader)",
-    year: "2023",
+    year: "2026",
     status: "Shipped",
     images: [projectImage("archangel-01.png"), projectImage("archangel-02.png")],
     features: [
