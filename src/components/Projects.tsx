@@ -508,6 +508,19 @@ export default function Projects() {
     }, 250);
   }, [scrollToSection]);
 
+  useEffect(() => {
+    const onProjectsAnchorClick = (e: MouseEvent) => {
+      const target = e.target as Element | null;
+      const projectsAnchor = target?.closest('a[href="#projects"]');
+      if (!projectsAnchor || !selectedProject) return;
+      e.preventDefault();
+      handleBack();
+    };
+
+    document.addEventListener("click", onProjectsAnchorClick);
+    return () => document.removeEventListener("click", onProjectsAnchorClick);
+  }, [selectedProject, handleBack]);
+
   const isGrid = !selectedProject;
   const isExiting = animState === "exiting";
   const isEntering = animState === "entering";
