@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 const NAV_LINKS = [
   { label: "PROJECTS", href: "#projects" },
   { label: "ABOUT", href: "#about" },
@@ -5,8 +7,32 @@ const NAV_LINKS = [
 ];
 const HERO_ANCHOR = "#hero";
 const CV_URL = `${import.meta.env.BASE_URL}mathias_achleitner_cv.pdf`;
+const THEME_STORAGE_KEY = "portfolio-theme";
+type ThemeMode = "dark" | "light";
 
 export default function Navbar() {
+  const [theme, setTheme] = useState<ThemeMode>("dark");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === "light" || saved === "dark") {
+        setTheme(saved);
+      }
+    } catch {
+      // no-op if storage is unavailable
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // no-op if storage is unavailable
+    }
+  }, [theme]);
+
   return (
     <aside className="page-rail">
       <div className="page-rail__inner">
@@ -48,6 +74,14 @@ export default function Navbar() {
         </div>
 
         <div className="page-rail__footer">
+          <button
+            type="button"
+            className="page-rail__theme"
+            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            aria-label="Toggle light and dark theme"
+          >
+            [{theme === "dark" ? "THEME: DARK" : "THEME: LIGHT"}]
+          </button>
           <span>Doc: TA-PORTFOLIO</span>
           <span>Rev: 02</span>
         </div>

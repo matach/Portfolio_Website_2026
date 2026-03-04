@@ -15,10 +15,10 @@ const WORK_STYLE = [
 ];
 
 const CURRENT_FOCUS = [
-  "Technical Artist / Gameplay Programmer",
-  "Tools + Rendering Work",
-  "Junior Game Programming Roles",
-  "Production-Focused Team Support",
+  "Technical Art Internship",
+  "Gameplay Programming Internship",
+  "Junior Technical Artist Role",
+  "Junior Gameplay Programmer Role",
 ];
 
 export default function About() {

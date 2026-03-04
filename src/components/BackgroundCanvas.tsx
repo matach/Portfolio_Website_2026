@@ -1,10 +1,5 @@
 import { useEffect, useRef } from "react";
 
-/* ── Palette ── */
-const BG = "#000000";
-const WHITE = [255, 255, 255] as const;
-const GRAY = [136, 136, 136] as const;
-
 /* ── Tunables ── */
 const PARTICLE_COUNT = 120;
 const CONNECT_DIST = 150;
@@ -60,6 +55,43 @@ interface Shockwave {
   time: number;
 }
 
+interface Palette {
+  bg: string;
+  bgRgb: [number, number, number];
+  fg: [number, number, number];
+  fgDim: [number, number, number];
+}
+
+function parseCssColor(value: string): [number, number, number] {
+  const color = value.trim();
+  if (color.startsWith("#")) {
+    const hex = color.slice(1);
+    if (hex.length === 3) {
+      return [
+        parseInt(hex[0] + hex[0], 16),
+        parseInt(hex[1] + hex[1], 16),
+        parseInt(hex[2] + hex[2], 16),
+      ];
+    }
+    if (hex.length === 6) {
+      return [
+        parseInt(hex.slice(0, 2), 16),
+        parseInt(hex.slice(2, 4), 16),
+        parseInt(hex.slice(4, 6), 16),
+      ];
+    }
+  }
+  const rgb = color.match(/\d+/g);
+  if (rgb && rgb.length >= 3) {
+    return [Number(rgb[0]), Number(rgb[1]), Number(rgb[2])];
+  }
+  return [255, 255, 255];
+}
+
+function rgba([r, g, b]: [number, number, number], a: number) {
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 /* ── Spatial grid ── */
 function buildGrid(particles: Particle[], w: number, h: number) {
   const cols = Math.ceil(w / GRID_CELL);
@@ -110,9 +142,24 @@ export default function BackgroundCanvas() {
     let mouseY = -9999;
     let w = 0;
     let h = 0;
+    let palette: Palette = {
+      bg: "#000000",
+      bgRgb: [0, 0, 0],
+      fg: [255, 255, 255],
+      fgDim: [136, 136, 136],
+    };
 
     const shockwaves: Shockwave[] = [];
     const particles: Particle[] = [];
+
+    function updatePalette() {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const bg = rootStyle.getPropertyValue("--bg").trim() || "#000000";
+      const bgRgb = parseCssColor(bg);
+      const fg = parseCssColor(rootStyle.getPropertyValue("--fg") || "#ffffff");
+      const fgDim = parseCssColor(rootStyle.getPropertyValue("--fg-dim") || "#888888");
+      palette = { bg, bgRgb, fg, fgDim };
+    }
 
     function initParticles() {
       particles.length = 0;
@@ -123,8 +170,8 @@ export default function BackgroundCanvas() {
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
           const speed = BASE_SPEED * scale.speed;
-          // 80% white, 20% gray
-          const color = idx % 5 === 0 ? GRAY : WHITE;
+          // 80% bright theme color, 20% dim theme color
+          const color = idx % 5 === 0 ? palette.fgDim : palette.fg;
           particles.push({
             x: Math.random() * w,
             y: Math.random() * h,
@@ -149,8 +196,21 @@ export default function BackgroundCanvas() {
       canvas!.height = h;
       if (particles.length === 0) initParticles();
     }
+    updatePalette();
     resize();
     window.addEventListener("resize", resize);
+
+    const themeObserver = new MutationObserver(() => {
+      updatePalette();
+      // Refresh particle palette without resetting positions.
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].color = i % 5 === 0 ? palette.fgDim : palette.fg;
+      }
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "style"],
+    });
 
     function onMouseMove(e: MouseEvent) {
       const dpr = Math.min(window.devicePixelRatio, 2);
@@ -240,7 +300,7 @@ export default function BackgroundCanvas() {
       }
 
       /* Clear */
-      ctx!.fillStyle = BG;
+      ctx!.fillStyle = palette.bg;
       ctx!.fillRect(0, 0, w, h);
 
       /* Spatial grid */
@@ -287,7 +347,7 @@ export default function BackgroundCanvas() {
             ctx!.beginPath();
             ctx!.moveTo(p.x, p.y);
             ctx!.lineTo(q.x, q.y);
-            ctx!.strokeStyle = `rgba(255,255,255,${alpha})`;
+            ctx!.strokeStyle = rgba(palette.fg, alpha);
             ctx!.lineWidth = EDGE_WIDTH;
             ctx!.stroke();
           }
@@ -331,7 +391,7 @@ export default function BackgroundCanvas() {
               const facetAlpha = FACET_ALPHA * scale.brightness * edgeFade;
               if (facetAlpha <= 0) continue;
 
-              ctx!.fillStyle = `rgba(255,255,255,${facetAlpha})`;
+              ctx!.fillStyle = rgba(palette.fg, facetAlpha);
               ctx!.fill();
             }
           }
@@ -354,7 +414,7 @@ export default function BackgroundCanvas() {
       }
 
       /* Scanlines */
-      ctx!.fillStyle = `rgba(255,255,255,0.03)`;
+      ctx!.fillStyle = rgba(palette.fg, 0.03);
       for (let sy = 0; sy < h; sy += 4) {
         ctx!.fillRect(0, sy, w, 1);
       }
@@ -363,8 +423,8 @@ export default function BackgroundCanvas() {
       if (mouseX > 0 && mouseY > 0) {
         const mgr = scaledMouseRadius * 1.2;
         const mg = ctx!.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, mgr);
-        mg.addColorStop(0, "rgba(255,255,255,0.04)");
-        mg.addColorStop(0.5, "rgba(255,255,255,0.015)");
+        mg.addColorStop(0, rgba(palette.fg, 0.04));
+        mg.addColorStop(0.5, rgba(palette.fg, 0.015));
         mg.addColorStop(1, "rgba(0,0,0,0)");
         ctx!.beginPath();
         ctx!.arc(mouseX, mouseY, mgr, 0, Math.PI * 2);
@@ -378,7 +438,7 @@ export default function BackgroundCanvas() {
       const vRad = Math.max(w, h) * 0.7;
       const vg = ctx!.createRadialGradient(vx, vy, vRad * 0.4, vx, vy, vRad);
       vg.addColorStop(0, "rgba(0,0,0,0)");
-      vg.addColorStop(1, "rgba(0,0,0,0.6)");
+      vg.addColorStop(1, rgba(palette.bgRgb, 0.55));
       ctx!.fillStyle = vg;
       ctx!.fillRect(0, 0, w, h);
 
@@ -393,6 +453,7 @@ export default function BackgroundCanvas() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseleave", onMouseLeave);
       window.removeEventListener("click", onClick);
+      themeObserver.disconnect();
     };
   }, []);
 
