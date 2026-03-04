@@ -3,13 +3,14 @@ const NAV_LINKS = [
   { label: "ABOUT", href: "#about" },
   { label: "CONTACT", href: "#contact" },
 ];
+const HERO_ANCHOR = "#hero";
 
 export default function Navbar() {
   return (
     <aside className="page-rail">
       <div className="page-rail__inner">
         <div className="page-rail__brand">
-          <a href="#hero" className="page-rail__logo">
+          <a href={HERO_ANCHOR} className="page-rail__logo">
             MATHIAS/
           </a>
           <span className="page-rail__role">Technical Artist</span>
@@ -25,7 +26,7 @@ export default function Navbar() {
             ))}
           </ul>
           <a
-            href="/cv.pdf"
+            href="/mathias_achleitner_cv.pdf"
             className="page-rail__cv"
             target="_blank"
             rel="noopener noreferrer"
