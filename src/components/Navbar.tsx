@@ -4,6 +4,7 @@ const NAV_LINKS = [
   { label: "CONTACT", href: "#contact" },
 ];
 const HERO_ANCHOR = "#hero";
+const CV_URL = `${import.meta.env.BASE_URL}mathias_achleitner_cv.pdf`;
 
 export default function Navbar() {
   return (
@@ -26,7 +27,7 @@ export default function Navbar() {
             ))}
           </ul>
           <a
-            href="/mathias_achleitner_cv.pdf"
+            href={CV_URL}
             className="page-rail__cv"
             target="_blank"
             rel="noopener noreferrer"

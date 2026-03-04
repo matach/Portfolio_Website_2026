@@ -21,6 +21,9 @@ interface Project {
   status?: string;
 }
 
+const ASSET_BASE = import.meta.env.BASE_URL;
+const projectImage = (fileName: string) => `${ASSET_BASE}images/projects/${fileName}`;
+
 const PROJECTS: Project[] = [
   {
     title: "Sonder",
@@ -32,9 +35,9 @@ const PROJECTS: Project[] = [
     year: "2025",
     status: "Shipped",
     images: [
-      "/images/projects/sonder-03.png",
-      "/images/projects/sonder-01.png",
-      "/images/projects/sonder-02.png",
+      projectImage("sonder-03.png"),
+      projectImage("sonder-01.png"),
+      projectImage("sonder-02.png"),
     ],
     features: [
       "Stylized waterfall shading with controllable flow, foam, and turbulence",
@@ -56,7 +59,7 @@ const PROJECTS: Project[] = [
     role: "Technical Artist / Tools Programmer",
     year: "2024",
     status: "Prototype",
-    images: ["/images/projects/vambrace-01.png", "/images/projects/vambrace-02.png"],
+    images: [projectImage("vambrace-01.png"), projectImage("vambrace-02.png")],
     features: [
       "Frame-by-frame move authoring workflow (startup/active/recovery phases)",
       "Preview window for scrubbing, playback, and rapid iteration",
@@ -76,7 +79,7 @@ const PROJECTS: Project[] = [
     role: "Level Designer + Technical Artist (Fullscreen Shader)",
     year: "2023",
     status: "Shipped",
-    images: ["/images/projects/archangel-01.png", "/images/projects/archangel-02.png"],
+    images: [projectImage("archangel-01.png"), projectImage("archangel-02.png")],
     features: [
       "Level design for four gameplay sections with deliberate pacing progression",
       "Environmental storytelling through trench layout, scene composition, and landmarks",
@@ -97,11 +100,11 @@ const PROJECTS: Project[] = [
     year: "2022",
     status: "Prototype",
     images: [
-      "/images/projects/asteraid-01.png",
-      "/images/projects/asteraid-02.png",
-      "/images/projects/asteraid-03.png",
-      "/images/projects/asteraid-04.png",
-      "/images/projects/asteraid-05.png",
+      projectImage("asteraid-01.png"),
+      projectImage("asteraid-02.png"),
+      projectImage("asteraid-03.png"),
+      projectImage("asteraid-04.png"),
+      projectImage("asteraid-05.png"),
     ],
     features: [
       "Impact and fragment shaders with controllable intensity and falloff",
@@ -123,7 +126,7 @@ const PROJECTS: Project[] = [
     role: "Programmer + Technical Artist (CRT Shader / Post-Processing)",
     year: "2025",
     status: "Shipped",
-    images: ["/images/projects/longwayoff-01.png", "/images/projects/longwayoff-02.png"],
+    images: [projectImage("longwayoff-01.png"), projectImage("longwayoff-02.png")],
     features: [
       "Fully simulated in-game operating system",
       "File system and multiple interactive control programs",
@@ -144,7 +147,7 @@ const PROJECTS: Project[] = [
     role: "Gameplay Programmer (Player Controller)",
     year: "2023",
     status: "GameJam",
-    images: ["/images/projects/mm-01.png"],
+    images: [projectImage("mm-01.png")],
     features: [
       "Asymmetric split-screen 1v1 gameplay loop",
       "Obstacle-course traversal with sabotage pressure",
@@ -171,9 +174,9 @@ const PROJECTS: Project[] = [
     year: "2024",
     status: "GameJam",
     images: [
-      "/images/projects/furbys-02.png",
-      "/images/projects/furbys-01.png",
-      "/images/projects/furbys-03.png",
+      projectImage("furbys-02.png"),
+      projectImage("furbys-01.png"),
+      projectImage("furbys-03.png"),
     ],
     features: [
       "FNaF-inspired survival-horror structure",
