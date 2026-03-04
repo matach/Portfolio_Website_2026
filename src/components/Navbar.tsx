@@ -24,6 +24,14 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
+          <a
+            href="/cv.pdf"
+            className="page-rail__cv"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            [CV]
+          </a>
         </nav>
 
         <div className="page-rail__meta">
