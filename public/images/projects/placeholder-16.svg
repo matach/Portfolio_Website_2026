@@ -1,0 +1,14 @@
+﻿<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'>
+  <rect width='1200' height='700' fill='#101010'/>
+  <g stroke='#303030' stroke-width='2' opacity='0.85'>
+    <line x1='0' y1='120' x2='1200' y2='120'/>
+    <line x1='0' y1='280' x2='1200' y2='280'/>
+    <line x1='0' y1='440' x2='1200' y2='440'/>
+    <line x1='0' y1='600' x2='1200' y2='600'/>
+    <line x1='180' y1='0' x2='180' y2='700'/>
+    <line x1='520' y1='0' x2='520' y2='700'/>
+    <line x1='860' y1='0' x2='860' y2='700'/>
+  </g>
+  <rect x='70' y='70' width='1060' height='560' fill='none' stroke='#ffffff' stroke-width='6'/>
+  <text x='98' y='640' fill='#ffffff' font-size='40' font-family='JetBrains Mono, monospace' letter-spacing='5'>PROJECT PLACEHOLDER 16</text>
+</svg>

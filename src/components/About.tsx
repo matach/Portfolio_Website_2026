@@ -1,24 +1,24 @@
-import profilePlaceholder from "../assets/profile-placeholder.svg";
+import profilePhoto from "../assets/profile-photo.png";
 
 const CAPABILITIES = [
-  "Unity gameplay + tooling (C#)",
-  "Shader development (Shader Graph + HLSL)",
-  "Performance profiling + optimization",
-  "Pipeline automation + validation",
+  "Gameplay systems + tooling (Unity/C# and UE5 workflows)",
+  "Shader development (Shader Graph, HLSL, fullscreen post effects)",
+  "Technical art for readability and atmosphere",
+  "Production-focused implementation (save systems, validation, iteration support)",
 ];
 
 const WORK_STYLE = [
-  "Translate visual goals into technical plans that ship on time.",
-  "Build artist-friendly tools to reduce repetitive scene and asset setup.",
-  "Document decisions so engineering, art, and design stay aligned.",
-  "Prototype quickly, then harden systems for production reliability.",
+  "Translate visual and design goals into practical systems that ship.",
+  "Build tools and workflows that help teams iterate faster under deadlines.",
+  "Balance look, readability, and performance from prototype to final pass.",
+  "Collaborate closely with design/art and support teammates when needed.",
 ];
 
 const CURRENT_FOCUS = [
-  "Junior Technical Artist",
-  "Junior Game Developer",
-  "Tools / Rendering Support",
-  "Real-time Pipeline Assistance",
+  "Technical Artist / Gameplay Programmer",
+  "Tools + Rendering Work",
+  "Junior Game Programming Roles",
+  "Production-Focused Team Support",
 ];
 
 export default function About() {
@@ -33,28 +33,32 @@ export default function About() {
             <header className="about__header">
               <div className="about__photo-frame">
                 <img
-                  src={profilePlaceholder}
-                  alt="Profile placeholder"
+                  src={profilePhoto}
+                  alt="Mathias Achleitner"
                   className="about__photo"
                 />
               </div>
               <div>
-                <p className="about__kicker">Junior Candidate · Technical Art + Gameplay</p>
-                <p className="about__role">Building practical tools and polished real-time visuals</p>
-                <p className="about__meta">Open to internships / junior roles · Remote or hybrid</p>
+                <p className="about__kicker">Technical Art + Gameplay Systems</p>
+                <p className="about__role">
+                  Building practical game systems and stylized real-time visuals
+                </p>
+                <p className="about__meta">Open to junior roles - Remote or hybrid</p>
               </div>
             </header>
 
             <div className="about__body">
               <p>
-                I&apos;m a junior-level technical artist and game developer focused on the
-                space between art direction and engineering delivery. I enjoy taking a
-                visual target, understanding its performance cost, and building a clean
-                path for teams to implement it confidently.
+                I&apos;m a technical artist and gameplay programmer focused on the space
+                between visual direction and systems implementation. My recent work
+                includes stylized shaders, post-processing, gameplay tools, and
+                production gameplay systems across Unity and Unreal Engine projects.
               </p>
               <p>
-                My goal in every project is simple: make the game look better, run
-                better, and be easier to work on for the next person.
+                I enjoy building features that are both creative and practical:
+                custom rendering effects, player-facing systems, and team-friendly
+                workflows that help projects look better, run better, and stay
+                maintainable.
               </p>
             </div>
           </article>
@@ -85,8 +89,9 @@ export default function About() {
               ))}
             </ul>
             <p className="about__footnote">
-              Available for junior studio roles where I can support production,
-              contribute to gameplay systems, and grow under experienced mentors.
+              Looking for junior studio roles where I can contribute to technical
+              art and gameplay systems while continuing to grow in production
+              environments.
             </p>
           </article>
         </div>

@@ -13,6 +13,19 @@ const MOUSE_STRENGTH = 0.012;
 const BASE_SPEED = 0.15;
 const WOBBLE_AMP = 0.1;
 const GRID_CELL = CONNECT_DIST;
+const EDGE_ALPHA = 0.14;
+const EDGE_WIDTH = 0.8;
+const FACET_ALPHA = 0.035;
+const FACET_EDGE_FADE_START = 0.72;
+
+function clamp01(v: number) {
+  return Math.max(0, Math.min(1, v));
+}
+
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = clamp01((x - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
 
 /* ── Depth layers ── */
 const LAYER_COUNTS = [45, 45, 30];
@@ -240,6 +253,7 @@ export default function BackgroundCanvas() {
         const scale = DEPTH_SCALES[depth];
 
         const drawnPairs = new Set<number>();
+        const drawnTriangles = new Set<string>();
 
         for (let li = 0; li < layerParticles.length; li++) {
           const i = layerParticles[li];
@@ -247,6 +261,8 @@ export default function BackgroundCanvas() {
           const col = Math.min(Math.floor(p.x / GRID_CELL), cols - 1);
           const row = Math.min(Math.floor(p.y / GRID_CELL), rows - 1);
           const neighbors = getNeighborIndices(grid, cols, rows, col, row);
+          const closeNeighbors: number[] = [];
+          const closeNeighborDistSq = new Map<number, number>();
 
           /* Edge lines */
           for (let n = 0; n < neighbors.length; n++) {
@@ -262,16 +278,62 @@ export default function BackgroundCanvas() {
             const ddy = p.y - q.y;
             const d2 = ddx * ddx + ddy * ddy;
             if (d2 > distSq) continue;
+            closeNeighbors.push(j);
+            closeNeighborDistSq.set(j, d2);
 
             const d = Math.sqrt(d2);
-            const alpha = (1 - d / scaledConnectDist) * 0.06 * scale.brightness;
+            const alpha = (1 - d / scaledConnectDist) * EDGE_ALPHA * scale.brightness;
 
             ctx!.beginPath();
             ctx!.moveTo(p.x, p.y);
             ctx!.lineTo(q.x, q.y);
             ctx!.strokeStyle = `rgba(255,255,255,${alpha})`;
-            ctx!.lineWidth = 0.5;
+            ctx!.lineWidth = EDGE_WIDTH;
             ctx!.stroke();
+          }
+
+          /* Subtle filled facets for stronger low-poly read */
+          for (let a = 0; a < closeNeighbors.length; a++) {
+            const j = closeNeighbors[a];
+            const q = particles[j];
+            const qCol = Math.min(Math.floor(q.x / GRID_CELL), cols - 1);
+            const qRow = Math.min(Math.floor(q.y / GRID_CELL), rows - 1);
+            const qNeighbors = getNeighborIndices(grid, cols, rows, qCol, qRow);
+
+            for (let b = a + 1; b < closeNeighbors.length; b++) {
+              const k = closeNeighbors[b];
+              if (k === j) continue;
+              if (!qNeighbors.includes(k)) continue;
+              if (particles[k].depth !== depth) continue;
+
+              const tri = [i, j, k].sort((m, n) => m - n).join("-");
+              if (drawnTriangles.has(tri)) continue;
+              drawnTriangles.add(tri);
+
+              const r = particles[k];
+              const dpq2 = closeNeighborDistSq.get(j);
+              const dpr2 = closeNeighborDistSq.get(k);
+              if (dpq2 === undefined || dpr2 === undefined) continue;
+              const jqx = q.x - r.x;
+              const jqy = q.y - r.y;
+              const dqr2 = jqx * jqx + jqy * jqy;
+              if (dqr2 > distSq) continue;
+
+              ctx!.beginPath();
+              ctx!.moveTo(p.x, p.y);
+              ctx!.lineTo(q.x, q.y);
+              ctx!.lineTo(r.x, r.y);
+              ctx!.closePath();
+
+              // Smoothly fade facets near the edge distance threshold to avoid popping.
+              const maxEdgeRatio = Math.sqrt(Math.max(dpq2, dpr2, dqr2)) / scaledConnectDist;
+              const edgeFade = 1 - smoothstep(FACET_EDGE_FADE_START, 1, maxEdgeRatio);
+              const facetAlpha = FACET_ALPHA * scale.brightness * edgeFade;
+              if (facetAlpha <= 0) continue;
+
+              ctx!.fillStyle = `rgba(255,255,255,${facetAlpha})`;
+              ctx!.fill();
+            }
           }
         }
 

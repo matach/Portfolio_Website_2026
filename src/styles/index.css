@@ -270,6 +270,24 @@ img {
   color: var(--bg);
 }
 
+.page-rail__cv {
+  display: block;
+  margin-top: 4px;
+  padding: 10px;
+  border: var(--rule) solid var(--fg);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--fg);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.page-rail__cv:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
 .page-rail__meta {
   display: grid;
   gap: 14px;
@@ -528,12 +546,23 @@ img {
   transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
   opacity: 0;
   transform: translateY(20px);
+  animation: none;
 }
 
 .project-card--visible {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.5s, transform 0.5s, background 0.2s, color 0.2s, border-color 0.2s;
+  animation: projectCardReveal 0.5s ease forwards;
+  animation-delay: var(--reveal-delay, 0s);
+}
+
+@keyframes projectCardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Border collapse: remove left border on even cards */
@@ -622,11 +651,10 @@ img {
 }
 
 .project-card__art {
+  position: relative;
   height: 140px;
   border: var(--rule) solid var(--border-dim);
-  background:
-    linear-gradient(135deg, transparent 45%, rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.08) 54%, transparent 55%),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 8px);
+  background: #060606;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -634,6 +662,30 @@ img {
   letter-spacing: 3px;
   font-size: 0.65rem;
   color: var(--fg-muted);
+  overflow: hidden;
+}
+
+.project-card__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(108%);
+}
+
+.project-card__image-count {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  color: var(--fg);
+  background: rgba(0, 0, 0, 0.72);
+  border: var(--rule) solid var(--border-dim);
+  padding: 2px 8px;
+}
+
+.project-card:hover .project-card__art img {
+  filter: grayscale(0%) contrast(100%);
 }
 
 .project-card__role {
@@ -679,11 +731,10 @@ img {
 }
 
 .project-detail__art {
-  height: 220px;
+  --drag-offset: 0px;
+  min-height: 220px;
   border: var(--rule) solid var(--border-dim);
-  background:
-    linear-gradient(135deg, transparent 45%, rgba(255, 255, 255, 0.08) 46%, rgba(255, 255, 255, 0.08) 54%, transparent 55%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 10px);
+  background: #060606;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -691,7 +742,68 @@ img {
   letter-spacing: 3px;
   font-size: 0.7rem;
   color: var(--fg-muted);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  touch-action: pan-y;
+  padding: 10px;
+}
+
+.project-detail__art--draggable {
+  cursor: grab;
+}
+
+.project-detail__art--draggable:active {
+  cursor: grabbing;
+}
+
+.project-detail__art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(72vh, 760px);
+  object-fit: contain;
+  transform: translateX(var(--drag-offset));
+  transition: transform 0.15s ease;
+  user-select: none;
+}
+
+.project-detail__gallery-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.project-detail__gallery-btn {
+  border: var(--rule) solid var(--fg);
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  min-width: 44px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.project-detail__gallery-btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.project-detail__gallery-count {
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  letter-spacing: 2px;
+}
+
+.project-detail__drag-hint {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
 }
 
 .project-detail__back {
