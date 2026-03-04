@@ -31,7 +31,7 @@ const PROJECTS: Project[] = [
       "Stylized water rendering package with dynamic waterfall interaction, Crest Water integration, and a custom outline shader for improved gameplay readability.",
     longDescription:
       "For Sonder, I created a dynamic waterfall shader with object interaction and integrated Crest Water to bring the rest of the water system to life. I also developed an outline shader to improve readability and strengthen the game's stylized visual identity. The goal across both features was stable performance, clear gameplay presentation, and artist-friendly controls for fast iteration.",
-    role: "Technical Artist (Shaders / Rendering / Integration)",
+    role: "Technical Artist (Water Shaders / Rendering Integration)",
     year: "2025",
     status: "In Development",
     images: [
@@ -62,7 +62,7 @@ const PROJECTS: Project[] = [
       "Frame-by-frame move authoring editor tool for a fighting game -- lets designers scrub, preview, and set transitions to speed up combat iteration.",
     longDescription:
       "Vambrace is a fighting game prototype where I developed an editor tool to author moves and transitions frame-by-frame. The goal was to dramatically speed up iteration for combat design by making gameplay data visual, editable, and testable without hand-editing assets. The tool turns combat tuning into a fast feedback loop: tweak, preview, test -- without constantly switching context.",
-    role: "Technical Artist / Tools Programmer",
+    role: "Tools Programmer (Combat Authoring)",
     year: "2024",
     status: "Prototype",
     images: [projectImage("vambrace-01.png"), projectImage("vambrace-02.png")],
