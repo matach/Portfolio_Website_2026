@@ -33,7 +33,7 @@ const PROJECTS: Project[] = [
       "For Sonder, I created a dynamic waterfall shader with object interaction and integrated Crest Water to bring the rest of the water system to life. I also developed an outline shader to improve readability and strengthen the game's stylized visual identity. The goal across both features was stable performance, clear gameplay presentation, and artist-friendly controls for fast iteration.",
     role: "Technical Artist (Shaders / Rendering / Integration)",
     year: "2025",
-    status: "Shipped",
+    status: "In Development",
     images: [
       projectImage("sonder-03.png"),
       projectImage("sonder-01.png"),
@@ -48,6 +48,12 @@ const PROJECTS: Project[] = [
       "Material parameter groups and presets for quick art direction changes",
     ],
     tags: ["Unity", "URP", "Shader Graph", "HLSL", "Crest Water"],
+    links: [
+      {
+        label: "Steam",
+        url: "https://store.steampowered.com/app/3700110/SONDER_Embrace_The_World/",
+      },
+    ],
     color: "#ffffff",
   },
   {
@@ -125,7 +131,7 @@ const PROJECTS: Project[] = [
       "Long Way Off is an Iron Lung-inspired horror game I worked on in 2025. The player is trapped in a spaceship that is breaking down and must operate it through a control panel inspired by classic 8-bit operating systems from the 1980s. I built the game's fully simulated operating system, including a file system and multiple in-game programs the player uses to control the ship and interact with the world. I also created a custom CRT shader for the screens, handled the post-processing for the moody atmosphere, implemented the save system, and did all gameplay programming on the project.",
     role: "Programmer + Technical Artist (CRT Shader / Post-Processing)",
     year: "2025",
-    status: "Shipped",
+    status: "Prototype",
     images: [projectImage("longwayoff-01.png"), projectImage("longwayoff-02.png")],
     features: [
       "Fully simulated in-game operating system",
