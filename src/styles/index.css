@@ -31,7 +31,7 @@ html {
 }
 
 body {
-  font-family: var(--font);
+  font-family: var(--font), monospace;
   background: var(--bg);
   color: var(--fg);
   line-height: 1.6;
@@ -134,7 +134,7 @@ img {
   color: var(--fg-muted);
   letter-spacing: 3px;
   padding: 20px 0;
-  font-family: var(--font);
+  font-family: var(--font), monospace;
   text-transform: uppercase;
   border-top: var(--rule) dashed var(--border-dim);
   border-bottom: var(--rule) dashed var(--border-dim);
@@ -152,7 +152,7 @@ img {
   border: var(--rule) solid var(--fg);
   background: transparent;
   color: var(--fg);
-  font-family: var(--font);
+  font-family: var(--font), monospace;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
@@ -323,6 +323,7 @@ img {
 .page-main {
   display: grid;
   gap: 80px;
+  min-width: 0;
 }
 
 /* ============================================
@@ -478,6 +479,14 @@ img {
   color: var(--fg-muted);
 }
 
+.hero-content__title,
+.hero-content__title-line,
+.hero-content__subtitle,
+.hero-content__panel-value,
+.section-title {
+  overflow-wrap: anywhere;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -535,6 +544,7 @@ img {
 
 /* --- Card --- */
 .project-card {
+  --reveal-delay: 0s;
   position: relative;
   border: var(--rule) solid var(--border-strong);
   padding: 28px;
@@ -778,7 +788,7 @@ img {
   border: var(--rule) solid var(--fg);
   background: transparent;
   color: var(--fg);
-  font-family: var(--font);
+  font-family: var(--font), monospace;
   font-size: 0.8rem;
   font-weight: 700;
   padding: 6px 10px;
@@ -810,7 +820,7 @@ img {
   background: transparent;
   border: var(--rule) solid var(--fg);
   color: var(--fg);
-  font-family: var(--font);
+  font-family: var(--font), monospace;
   font-size: 0.85rem;
   font-weight: 700;
   padding: 8px 16px;
@@ -1130,7 +1140,7 @@ img {
   border: var(--rule) solid var(--fg);
   padding: 12px 16px;
   color: var(--fg);
-  font-family: var(--font);
+  font-family: var(--font), monospace;
   font-size: 0.9rem;
   transition: border-color 0.2s;
   outline: none;
@@ -1246,6 +1256,7 @@ img {
 
   .page-shell {
     grid-template-columns: 1fr;
+    gap: 20px;
     padding: 16px 16px 0;
   }
 
@@ -1253,6 +1264,12 @@ img {
     position: relative;
     top: auto;
     height: auto;
+  }
+
+  .page-rail__inner {
+    height: auto;
+    gap: 16px;
+    padding: 16px 12px;
   }
 
   .page-main {
@@ -1282,6 +1299,30 @@ img {
     grid-template-columns: 1fr;
   }
 
+  .hero-content {
+    height: auto;
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  .hero-content__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .hero-content__lead {
+    padding-right: 0;
+  }
+
+  .hero-content__panel {
+    margin-top: 0;
+  }
+
+  .hero-content__panel-header,
+  .hero-content__panel-footer {
+    flex-wrap: wrap;
+  }
+
   .projects__grid {
     grid-template-columns: 1fr;
   }
@@ -1309,31 +1350,54 @@ img {
     padding: 12px 12px 0;
   }
 
+  .section-container {
+    padding: 20px 16px 0;
+  }
+
   .hero-content {
     align-items: center;
     text-align: center;
-    padding: 0 24px;
+    padding: 16px 16px;
   }
 
   .hero-content__title {
     letter-spacing: 1px;
   }
 
+  .hero-content__title-line {
+    letter-spacing: 2px;
+  }
+
   .hero-content__cta {
     justify-content: center;
+    gap: 10px;
   }
 
   .hero-content__grid {
     grid-template-columns: 1fr;
+    gap: 18px;
   }
 
   .hero-content__lead {
     align-items: center;
+    gap: 16px;
   }
 
   .hero-content__panel {
     text-align: left;
-    margin-top: 16px;
+    margin-top: 0;
+    padding: 14px;
+  }
+
+  .hero-content__panel-item {
+    padding: 8px 10px;
+  }
+
+  .hero-content__panel-key,
+  .hero-content__panel-value,
+  .hero-content__panel-footer {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
   }
 
   .about__header {
@@ -1347,6 +1411,11 @@ img {
 
   .contact__form-row {
     grid-template-columns: 1fr;
+  }
+
+  .contact__subtitle {
+    margin-top: 0;
+    margin-bottom: 28px;
   }
 
   .project-card {
