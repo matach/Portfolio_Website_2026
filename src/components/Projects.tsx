@@ -44,8 +44,6 @@ const PROJECTS: Project[] = [
       "Object-driven interaction response on surface, foam, and flow",
       "Consistent look between custom shader water and Crest water",
       "Custom outline shader to improve silhouette readability",
-      "Quality/performance-minded options with distance fade and cheaper variants",
-      "Material parameter groups and presets for quick art direction changes",
     ],
     tags: ["Unity", "URP", "Shader Graph", "HLSL", "Crest Water"],
     links: [
@@ -88,7 +86,6 @@ const PROJECTS: Project[] = [
     images: [projectImage("archangel-01.png"), projectImage("archangel-02.png")],
     features: [
       "Level design for four gameplay sections with deliberate pacing progression",
-      "Environmental storytelling through trench layout, scene composition, and landmarks",
       "Early concept contribution for mood, tone, and visual direction",
       "Custom fullscreen painted shader for the game's signature look",
       "VR-focused visual readability and comfort considerations",
@@ -137,9 +134,7 @@ const PROJECTS: Project[] = [
       "Fully simulated in-game operating system",
       "File system and multiple interactive control programs",
       "Custom CRT shader for ship display screens",
-      "Atmospheric post-processing pipeline",
       "Save system implementation",
-      "Full game programming ownership",
     ],
     tags: ["Unity", "C#", "Horror", "Systems Programming", "Shaders"],
     color: "#ffffff",
@@ -156,7 +151,6 @@ const PROJECTS: Project[] = [
     images: [projectImage("mm-01.png")],
     features: [
       "Asymmetric split-screen 1v1 gameplay loop",
-      "Obstacle-course traversal with sabotage pressure",
       "Player movement controller tuned for responsiveness and control",
       "Camera-monitoring and trap-trigger counterplay",
       "Programming support for teammates newer to coding",
@@ -185,10 +179,9 @@ const PROJECTS: Project[] = [
       projectImage("furbys-03.png"),
     ],
     features: [
-      "FNaF-inspired survival-horror structure",
+      "FNaF-inspired survival-horror game",
       "Toy-store setting built for escalating tension",
-      "Level design focused on sightlines and player pressure",
-      "Environmental layout supporting horror pacing",
+      "Level design focused on sightlines and player pressure"
     ],
     links: [
       {
