@@ -5,8 +5,8 @@ export default function HeroContent() {
         <div className="hero-content__lead">
           <div className="hero-content__kicker">Portfolio / 2026</div>
           <h1 className="hero-content__title">
-            Technical Artist
-            <span className="hero-content__title-line">&amp; Gameplay Programmer</span>
+            Gameplay Programmer
+            <span className="hero-content__title-line"></span>
             <span className="hero-content__cursor">_</span>
           </h1>
           <p className="hero-content__subtitle">
