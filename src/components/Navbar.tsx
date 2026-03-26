@@ -40,7 +40,7 @@ export default function Navbar() {
           <a href={HERO_ANCHOR} className="page-rail__logo">
             MATHIAS/
           </a>
-          <span className="page-rail__role">Technical Artist</span>
+          <span className="page-rail__role">Gameplay Programmer</span>
         </div>
 
         <nav className="page-rail__nav">
