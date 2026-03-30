@@ -1,24 +1,24 @@
 import profilePhoto from "../assets/profile-photo.png";
 
 const CAPABILITIES = [
-  "Gameplay systems + tooling (Unity/C# and UE5 workflows)",
-  "Shader development (Shader Graph, HLSL, fullscreen post effects)",
-  "Technical art for readability and atmosphere",
-  "Production-focused implementation (save systems, validation, iteration support)",
+  "Gameplay systems and tools in Unity/C# and Unreal Engine workflows",
+  "Shader development with Shader Graph, HLSL, and post-processing",
+  "Real-time VFX focused on readability and feedback",
+  "Production-minded implementation including save systems and tooling support",
 ];
 
 const WORK_STYLE = [
-  "Translate visual and design goals into practical systems that ship.",
-  "Build tools and workflows that help teams iterate faster under deadlines.",
-  "Balance look, readability, and performance from prototype to final pass.",
-  "Collaborate closely with design/art and support teammates when needed.",
+  "I try to keep systems easy to test, tune, and maintain.",
+  "I like building tools when they remove repetitive work for the team.",
+  "I pay attention to readability, game feel, and performance together.",
+  "I work best when I can collaborate closely with design and art.",
 ];
 
 const CURRENT_FOCUS = [
-  "Technical Art Internship",
   "Gameplay Programming Internship",
-  "Junior Technical Artist Role",
+  "VFX / Shader Internship",
   "Junior Gameplay Programmer Role",
+  "Junior VFX Artist Role",
 ];
 
 export default function About() {
@@ -39,26 +39,26 @@ export default function About() {
                 />
               </div>
               <div>
-                <p className="about__kicker">Technical Art + Gameplay Systems</p>
+                <p className="about__kicker">Gameplay Programming + Real-Time VFX</p>
                 <p className="about__role">
-                  Building practical game systems and stylized real-time visuals
+                  Building player-facing systems and supporting them with clear visuals
                 </p>
-                <p className="about__meta">Open to junior roles - Remote or hybrid</p>
+                <p className="about__meta">Looking for internships - Remote or hybrid</p>
               </div>
             </header>
 
             <div className="about__body">
               <p>
-                I&apos;m a technical artist and gameplay programmer focused on the space
-                between visual direction and systems implementation. My recent work
-                includes stylized shaders, post-processing, gameplay tools, and
-                production gameplay systems across Unity and Unreal Engine projects.
+                I&apos;m a gameplay programmer and VFX artist with experience building
+                gameplay features, shaders, tools, and post-processing work for
+                student, prototype, and team projects in Unity and Unreal Engine.
               </p>
               <p>
-                I enjoy building features that are both creative and practical:
-                custom rendering effects, player-facing systems, and team-friendly
-                workflows that help projects look better, run better, and stay
-                maintainable.
+                The part of development I enjoy most is turning an idea into
+                something playable and readable on screen, whether that means
+                writing gameplay code, building a tool, or making shader and
+                effects work that helps set the mood and communicate information
+                to the player more clearly.
               </p>
             </div>
           </article>
@@ -89,9 +89,9 @@ export default function About() {
               ))}
             </ul>
             <p className="about__footnote">
-              Looking for junior studio roles where I can contribute to technical
-              art and gameplay systems while continuing to grow in production
-              environments.
+              I&apos;m currently looking for internships where I can contribute to
+              gameplay programming or real-time VFX and keep growing in a
+              production environment.
             </p>
           </article>
         </div>

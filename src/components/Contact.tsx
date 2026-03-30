@@ -37,8 +37,8 @@ export default function Contact() {
         <p className="section-label">Contact</p>
         <h2 className="section-title">Let's Build Something</h2>
         <p className="contact__subtitle">
-          Interested in collaboration, a project, or just want to chat about
-          shaders? Send me a message.
+          If you are hiring for a gameplay programming or VFX internship, feel
+          free to reach out by email or through the form below.
         </p>
 
         <div className="contact__wrapper">

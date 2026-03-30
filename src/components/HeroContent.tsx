@@ -5,15 +5,19 @@ export default function HeroContent() {
         <div className="hero-content__lead">
           <div className="hero-content__kicker">Portfolio / 2026</div>
           <h1 className="hero-content__title">
-            Mathias Achleitner
-            <span className="hero-content__title-line">Gameplay programmer</span>
-            <span className="hero-content__cursor">_</span>
+            <span className="hero-content__title-main">
+              <span>Gameplay </span>
+              <span>
+                Programmer
+                <span className="hero-content__cursor">_</span>
+              </span>
+            </span>
+            <span className="hero-content__title-line">&amp; VFX Artist</span>
           </h1>
           <p className="hero-content__subtitle">
-            I build gameplay systems, tools, and real-time visuals for projects
-            in Unity and Unreal Engine. My focus is practical implementation:
-            clear player-facing behavior, maintainable tech, and strong visual
-            readability.
+            I build gameplay systems, tools, shaders, and effects in Unity and
+            Unreal Engine, with a focus on atmosphere, visual feedback, and
+            clear implementation.
           </p>
           <div className="hero-content__cta">
             <a href="#projects" className="btn btn--primary">
@@ -34,7 +38,7 @@ export default function HeroContent() {
             <div className="hero-content__panel-item">
               <span className="hero-content__panel-key">Focus</span>
               <span className="hero-content__panel-value">
-                Gameplay systems, shaders, tools
+                Gameplay systems, VFX, shaders
               </span>
             </div>
             <div className="hero-content__panel-item">
@@ -43,7 +47,9 @@ export default function HeroContent() {
             </div>
             <div className="hero-content__panel-item">
               <span className="hero-content__panel-key">Status</span>
-              <span className="hero-content__panel-value">Open for junior roles</span>
+              <span className="hero-content__panel-value">
+                Seeking gameplay programming and VFX internships
+              </span>
             </div>
             <div className="hero-content__panel-item">
               <span className="hero-content__panel-key">Availability</span>
@@ -51,7 +57,7 @@ export default function HeroContent() {
             </div>
           </div>
           <div className="hero-content__panel-footer">
-            <span>Doc: TA-PORTFOLIO</span>
+            <span>Doc: GP-VFX-PORTFOLIO</span>
             <span>Rev: 02</span>
           </div>
         </aside>

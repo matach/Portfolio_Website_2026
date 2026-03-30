@@ -17,8 +17,8 @@ export default function App() {
             <Projects />
             <About />
             <Contact />
-            <footer className="footer">
-              <p>&copy; 2026 -- Built with React, TypeScript &amp; WebGL shaders</p>
+            <footer className="footer section-frame">
+              <p>&copy; 2026 // Built with React, TypeScript &amp; WebGL shaders</p>
             </footer>
           </main>
         </div>

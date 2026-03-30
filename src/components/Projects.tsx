@@ -19,6 +19,9 @@ interface Project {
   links?: { label: string; url: string }[];
   year?: string;
   status?: string;
+  responsibilities?: string[];
+  tools?: string[];
+  challenge?: string;
 }
 
 const ASSET_BASE = import.meta.env.BASE_URL;
@@ -28,10 +31,10 @@ const PROJECTS: Project[] = [
   {
     title: "Sonder",
     description:
-      "Stylized water rendering package with dynamic waterfall interaction, Crest Water integration, and a custom outline shader for improved gameplay readability.",
+      "Water and readability work for a commercial project, including an interactive waterfall shader, Crest Water integration, and an outline shader for gameplay clarity.",
     longDescription:
-      "For Sonder, I created a dynamic waterfall shader with object interaction and integrated Crest Water to bring the rest of the water system to life. I also developed an outline shader to improve readability and strengthen the game's stylized visual identity. The goal across both features was stable performance, clear gameplay presentation, and artist-friendly controls for fast iteration.",
-    role: "Technical Artist (Water Shaders / Rendering Integration)",
+      "For Sonder, I built a waterfall shader with object interaction and integrated Crest Water into the rest of the scene. I also made an outline shader to improve silhouette readability during gameplay. The work was focused on keeping the visuals stylized while staying practical to tune and stable to run.",
+    role: "Shader / VFX Work",
     year: "2025",
     status: "In Development",
     images: [
@@ -46,6 +49,14 @@ const PROJECTS: Project[] = [
       "Custom outline shader to improve silhouette readability",
     ],
     tags: ["Unity", "URP", "Shader Graph", "HLSL", "Crest Water"],
+    responsibilities: [
+      "Built the interactive waterfall shader",
+      "Integrated Crest Water with the rest of the scene setup",
+      "Created an outline shader to improve gameplay readability",
+    ],
+    tools: ["Unity", "URP", "Shader Graph", "HLSL", "Crest Water"],
+    challenge:
+      "Keeping the water stylized and readable while making the interaction stable enough to use in-game.",
     links: [
       {
         label: "Steam",
@@ -57,9 +68,9 @@ const PROJECTS: Project[] = [
   {
     title: "Vambrace",
     description:
-      "Frame-by-frame move authoring editor tool for a fighting game -- lets designers scrub, preview, and set transitions to speed up combat iteration.",
+      "Frame-by-frame combat authoring tool for a fighting game prototype, built to help designers preview, edit, and test move data more quickly.",
     longDescription:
-      "Vambrace is a fighting game prototype where I developed an editor tool to author moves and transitions frame-by-frame. The goal was to dramatically speed up iteration for combat design by making gameplay data visual, editable, and testable without hand-editing assets. The tool turns combat tuning into a fast feedback loop: tweak, preview, test -- without constantly switching context.",
+      "For Vambrace, I built an editor tool for authoring moves and transitions frame by frame. The goal was to make combat tuning faster by letting designers inspect timing, preview behavior, and adjust data without hand-editing assets.",
     role: "Tools Programmer (Combat Authoring)",
     year: "2024",
     status: "Prototype",
@@ -72,6 +83,14 @@ const PROJECTS: Project[] = [
       "Guardrails and validation to catch common authoring errors",
     ],
     tags: ["Unity", "C#", "Editor Tooling"],
+    responsibilities: [
+      "Built the move authoring editor tool",
+      "Added preview and scrubbing for combat timing",
+      "Set up transition editing and validation support",
+    ],
+    tools: ["Unity", "C#", "Custom editor tooling"],
+    challenge:
+      "Reducing combat iteration time by making move data easier to inspect and tune.",
     color: "#ffffff",
   },
   {
@@ -79,8 +98,8 @@ const PROJECTS: Project[] = [
     description:
       "Short narrative VR experience set in a World War I trench system, with pacing and environmental storytelling shaped across four gameplay sections.",
     longDescription:
-      "Archangel is a short narrative VR experience set in a World War I trench system. I was responsible for level design, shaping the pacing and environmental storytelling across the game's four gameplay sections. I also contributed to early conceptual development and created the custom fullscreen shader that gives the game its distinctive painted visual style.",
-    role: "Level Designer + Technical Artist (Fullscreen Shader)",
+      "Archangel is a short VR narrative project set in a World War I trench system. I worked on level design across four gameplay sections and created a fullscreen shader to support the painted visual style. The work combined pacing, readability, and atmosphere, especially in VR where comfort and clarity matter.",
+    role: "Level Design / Shader Work",
     year: "2026",
     status: "In Development",
     images: [projectImage("archangel-01.png"), projectImage("archangel-02.png")],
@@ -91,15 +110,23 @@ const PROJECTS: Project[] = [
       "VR-focused visual readability and comfort considerations",
     ],
     tags: ["Unity", "VR", "Level Design", "Shader Development", "Narrative Design"],
+    responsibilities: [
+      "Designed and paced four gameplay sections",
+      "Built the fullscreen shader for the painted look",
+      "Supported early concept and atmosphere work",
+    ],
+    tools: ["Unity", "VR", "Shader Graph/HLSL", "Level design workflows"],
+    challenge:
+      "Balancing atmosphere and visual style with readability and comfort in VR.",
     color: "#ffffff",
   },
   {
     title: "Asteraid",
     description:
-      "Mobile VFX, procedural skybox tool, and multi-threaded n-body gravity simulation -- multiple TA-style systems built for mobile performance.",
+      "Prototype work covering mobile VFX, a procedural skybox tool, and a multi-threaded gravity simulation built with performance in mind.",
     longDescription:
-      "Asteraid is a game prototype where I developed multiple systems: VFX shaders for planetary impacts, a procedural skybox generation tool, and a multi-threaded n-body simulation to handle gravity at mobile-friendly performance. This is a production-style performance problem: real-time physics-like computation under tight budgets.",
-    role: "Technical Artist / Gameplay Programming / Tools",
+      "For Asteraid, I worked on several systems: impact VFX, a procedural skybox tool, and a multi-threaded n-body gravity simulation. The main challenge was keeping the work practical for mobile performance while still giving enough visual and gameplay feedback.",
+    role: "Gameplay / Tools / VFX",
     year: "2022",
     status: "Prototype",
     images: [
@@ -118,6 +145,14 @@ const PROJECTS: Project[] = [
       "Debug controls and visualization to stress test body counts",
     ],
     tags: ["Unity", "C#", "Mobile", "Threading"],
+    responsibilities: [
+      "Built impact VFX and related shader work",
+      "Created the procedural skybox generation tool",
+      "Implemented the multi-threaded gravity simulation",
+    ],
+    tools: ["Unity", "C#", "Threading", "Shader work", "Editor tooling"],
+    challenge:
+      "Making multiple systems run well enough for mobile while still giving clear visual feedback.",
     color: "#ffffff",
   },
   {
@@ -125,8 +160,8 @@ const PROJECTS: Project[] = [
     description:
       "Iron Lung-inspired horror game where the player pilots a failing spaceship through a simulated retro 80s-style control panel operating system.",
     longDescription:
-      "Long Way Off is an Iron Lung-inspired horror game I worked on in 2025. The player is trapped in a spaceship that is breaking down and must operate it through a control panel inspired by classic 8-bit operating systems from the 1980s. I built the game's fully simulated operating system, including a file system and multiple in-game programs the player uses to control the ship and interact with the world. I also created a custom CRT shader for the screens, handled the post-processing for the moody atmosphere, implemented the save system, and did all gameplay programming on the project.",
-    role: "Programmer + Technical Artist (CRT Shader / Post-Processing)",
+      "Long Way Off is a horror project where the player controls a failing spaceship through a simulated retro operating system. I built the in-game OS, including the file system and interactive programs, and also handled gameplay code, the save system, CRT screen shading, and post-processing.",
+    role: "Gameplay Programmer / Shader Work",
     year: "2025",
     status: "Prototype",
     images: [projectImage("longwayoff-01.png"), projectImage("longwayoff-02.png")],
@@ -135,8 +170,17 @@ const PROJECTS: Project[] = [
       "File system and multiple interactive control programs",
       "Custom CRT shader for ship display screens",
       "Save system implementation",
+      "Gameplay programming for ship interaction systems",
     ],
     tags: ["Unity", "C#", "Horror", "Systems Programming", "Shaders"],
+    responsibilities: [
+      "Built the in-game operating system and file system",
+      "Implemented the interactive ship control programs",
+      "Handled gameplay code, save system, CRT shader, and post-processing",
+    ],
+    tools: ["Unity", "C#", "Systems programming", "Shaders", "Post-processing"],
+    challenge:
+      "Making the simulated operating system feel like a real gameplay interface instead of just a visual gimmick.",
     color: "#ffffff",
   },
   {
@@ -156,6 +200,14 @@ const PROJECTS: Project[] = [
       "Programming support for teammates newer to coding",
     ],
     tags: ["Unity", "C#", "GameJam", "Multiplayer"],
+    responsibilities: [
+      "Programmed the player movement controller",
+      "Focused on responsive controls for the runner role",
+      "Supported teammates with programming tasks during the jam",
+    ],
+    tools: ["Unity", "C#", "Gameplay programming"],
+    challenge:
+      "Getting movement to feel reliable and responsive in a short game jam timeframe.",
     links: [
       {
         label: "GameJam Page",
@@ -190,6 +242,14 @@ const PROJECTS: Project[] = [
       },
     ],
     tags: ["Unreal Engine 5", "Level Design", "GameJam", "Horror"],
+    responsibilities: [
+      "Worked on level design for the toy-store setting",
+      "Shaped sightlines and room layout for tension",
+      "Supported the horror pacing through environment setup",
+    ],
+    tools: ["Unreal Engine 5", "Level design"],
+    challenge:
+      "Using a small game jam environment to create tension and keep the player under pressure.",
     color: "#ffffff",
   },
 ];
@@ -434,6 +494,37 @@ function ProjectDetail({
       <p className="project-detail__description">
         {project.longDescription || project.description}
       </p>
+
+      <div className="project-detail__summary-grid">
+        {project.responsibilities && project.responsibilities.length > 0 && (
+          <div className="project-detail__summary-block">
+            <h3 className="project-detail__summary-title">What I Did</h3>
+            <ul className="project-detail__summary-list">
+              {project.responsibilities.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {project.tools && project.tools.length > 0 && (
+          <div className="project-detail__summary-block">
+            <h3 className="project-detail__summary-title">Tools</h3>
+            <ul className="project-detail__summary-list">
+              {project.tools.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {project.challenge && (
+          <div className="project-detail__summary-block project-detail__summary-block--wide">
+            <h3 className="project-detail__summary-title">Key Challenge</h3>
+            <p className="project-detail__summary-text">{project.challenge}</p>
+          </div>
+        )}
+      </div>
 
       {project.features && project.features.length > 0 && (
         <>

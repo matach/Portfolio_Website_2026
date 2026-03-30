@@ -4,14 +4,22 @@ import { useEffect, useRef } from "react";
 const PARTICLE_COUNT = 120;
 const CONNECT_DIST = 150;
 const MOUSE_RADIUS = 200;
-const MOUSE_STRENGTH = 0.012;
+const MOUSE_STRENGTH = 0.0075;
 const BASE_SPEED = 0.15;
 const WOBBLE_AMP = 0.1;
 const GRID_CELL = CONNECT_DIST;
 const EDGE_ALPHA = 0.14;
 const EDGE_WIDTH = 0.8;
 const FACET_ALPHA = 0.035;
-const FACET_EDGE_FADE_START = 0.72;
+const FACET_EDGE_FADE_START = 0.56;
+const FACET_CONNECT_DIST_MULTIPLIER = 1.12;
+const FACET_COLOR_BLEND = 0.08;
+const SCANLINE_ALPHA = 0.018;
+const VIGNETTE_ALPHA = 0.4;
+const HERO_ZONE_RADIUS = 280;
+const HERO_TITLE_BOOST = 0.32;
+const SHOCKWAVE_DRAW_ALPHA = 0.28;
+const SHOCKWAVE_DRAW_WIDTH = 1.6;
 
 function clamp01(v: number) {
   return Math.max(0, Math.min(1, v));
@@ -25,9 +33,9 @@ function smoothstep(edge0: number, edge1: number, x: number) {
 /* ── Depth layers ── */
 const LAYER_COUNTS = [45, 45, 30];
 const DEPTH_SCALES = [
-  { radius: 0.4, speed: 0.4, brightness: 0.4, wobble: 0.3, mouse: 0.2 },
-  { radius: 0.7, speed: 0.7, brightness: 0.7, wobble: 0.7, mouse: 0.6 },
-  { radius: 1.0, speed: 1.0, brightness: 1.0, wobble: 1.0, mouse: 1.0 },
+  { radius: 0.3, speed: 0.26, brightness: 0.26, wobble: 0.18, mouse: 0.14, scroll: 0.03 },
+  { radius: 0.68, speed: 0.62, brightness: 0.68, wobble: 0.58, mouse: 0.54, scroll: 0.08 },
+  { radius: 1.08, speed: 1.12, brightness: 1.08, wobble: 1.08, mouse: 1.08, scroll: 0.16 },
 ];
 
 /* ── Shockwave ── */
@@ -60,6 +68,7 @@ interface Palette {
   bgRgb: [number, number, number];
   fg: [number, number, number];
   fgDim: [number, number, number];
+  accent: [number, number, number];
 }
 
 function parseCssColor(value: string): [number, number, number] {
@@ -90,6 +99,34 @@ function parseCssColor(value: string): [number, number, number] {
 
 function rgba([r, g, b]: [number, number, number], a: number) {
   return `rgba(${r},${g},${b},${a})`;
+}
+
+function mixColor(
+  source: [number, number, number],
+  target: [number, number, number],
+  amount: number,
+): [number, number, number] {
+  const t = clamp01(amount);
+  return [
+    Math.round(source[0] + (target[0] - source[0]) * t),
+    Math.round(source[1] + (target[1] - source[1]) * t),
+    Math.round(source[2] + (target[2] - source[2]) * t),
+  ];
+}
+
+function getSectionProfile(sectionId: string | null) {
+  switch (sectionId) {
+    case "hero":
+      return { edge: 1.22, facet: 1.18, speed: 1.08, mouse: 1.08, accent: 0.34 };
+    case "projects":
+      return { edge: 0.92, facet: 0.86, speed: 0.98, mouse: 1.14, accent: 0.2 };
+    case "about":
+      return { edge: 0.96, facet: 0.9, speed: 0.96, mouse: 1, accent: 0.14 };
+    case "contact":
+      return { edge: 0.86, facet: 0.8, speed: 0.92, mouse: 0.92, accent: 0.18 };
+    default:
+      return { edge: 1, facet: 1, speed: 1, mouse: 1, accent: 0.12 };
+  }
 }
 
 /* ── Spatial grid ── */
@@ -147,7 +184,12 @@ export default function BackgroundCanvas() {
       bgRgb: [0, 0, 0],
       fg: [255, 255, 255],
       fgDim: [136, 136, 136],
+      accent: [164, 255, 68],
     };
+    let hoveredSectionId: string | null = null;
+    let scrollTarget = window.scrollY;
+    let scrollCurrent = scrollTarget;
+    let scrollVelocity = 0;
 
     const shockwaves: Shockwave[] = [];
     const particles: Particle[] = [];
@@ -158,7 +200,8 @@ export default function BackgroundCanvas() {
       const bgRgb = parseCssColor(bg);
       const fg = parseCssColor(rootStyle.getPropertyValue("--fg") || "#ffffff");
       const fgDim = parseCssColor(rootStyle.getPropertyValue("--fg-dim") || "#888888");
-      palette = { bg, bgRgb, fg, fgDim };
+      const accent = parseCssColor(rootStyle.getPropertyValue("--accent") || "#a4ff44");
+      palette = { bg, bgRgb, fg, fgDim, accent };
     }
 
     function initParticles() {
@@ -216,10 +259,16 @@ export default function BackgroundCanvas() {
       const dpr = Math.min(window.devicePixelRatio, 2);
       mouseX = e.clientX * dpr;
       mouseY = e.clientY * dpr;
+      hoveredSectionId =
+        (e.target instanceof Element && e.target.closest("section")?.id) || null;
     }
     function onMouseLeave() {
       mouseX = -9999;
       mouseY = -9999;
+      hoveredSectionId = null;
+    }
+    function onScroll() {
+      scrollTarget = window.scrollY;
     }
     function onClick(e: MouseEvent) {
       const dpr = Math.min(window.devicePixelRatio, 2);
@@ -232,6 +281,7 @@ export default function BackgroundCanvas() {
     }
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseleave", onMouseLeave);
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("click", onClick);
 
     function getLayerIndices(): [number[], number[], number[]] {
@@ -245,13 +295,58 @@ export default function BackgroundCanvas() {
     let raf: number;
     const startTime = performance.now();
 
+    function getActiveSectionId() {
+      const ids = ["hero", "projects", "about", "contact"];
+      const probeY = window.innerHeight * 0.36;
+      let bestId: string | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      for (let i = 0; i < ids.length; i++) {
+        const el = document.getElementById(ids[i]);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+        const center = rect.top + rect.height / 2;
+        const distance = Math.abs(center - probeY);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestId = ids[i];
+        }
+      }
+
+      return bestId;
+    }
+
+    function getHeroTitleCenter(dpr: number) {
+      const title = document.querySelector(".hero-content__title");
+      if (!(title instanceof HTMLElement)) return null;
+      const rect = title.getBoundingClientRect();
+      return {
+        x: (rect.left + rect.width * 0.5) * dpr,
+        y: (rect.top + rect.height * 0.5) * dpr,
+        width: rect.width * dpr,
+        height: rect.height * dpr,
+      };
+    }
+
     function render() {
       const now = performance.now();
       const t = (now - startTime) / 1000;
       const dpr = Math.min(window.devicePixelRatio, 2);
+      const activeSectionId = hoveredSectionId ?? getActiveSectionId();
+      const sectionProfile = getSectionProfile(activeSectionId);
+      const scrollForce = scrollTarget - scrollCurrent;
+      scrollVelocity += scrollForce * 0.012;
+      scrollVelocity *= 0.86;
+      scrollCurrent += scrollVelocity;
+      const scrollDelta = Math.max(-5, Math.min(5, scrollVelocity)) * dpr;
       const scaledMouseRadius = MOUSE_RADIUS * dpr;
       const scaledConnectDist = CONNECT_DIST * dpr;
       const distSq = scaledConnectDist * scaledConnectDist;
+      const scaledFacetConnectDist = scaledConnectDist * FACET_CONNECT_DIST_MULTIPLIER;
+      const facetDistSq = scaledFacetConnectDist * scaledFacetConnectDist;
+      const heroTitle = getHeroTitleCenter(dpr);
+      const isHeroActive = activeSectionId === "hero";
 
       /* Update shockwaves */
       for (let i = shockwaves.length - 1; i >= 0; i--) {
@@ -264,15 +359,23 @@ export default function BackgroundCanvas() {
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const scale = DEPTH_SCALES[p.depth];
+        const motionBoost = sectionProfile.speed * (0.94 + p.depth * 0.08);
 
-        p.x += p.vx + Math.sin(t * 0.8 + p.phase) * WOBBLE_AMP * scale.wobble;
-        p.y += p.vy + Math.cos(t * 0.6 + p.phase * 1.3) * WOBBLE_AMP * scale.wobble;
+        p.x += (p.vx + Math.sin(t * 0.8 + p.phase) * WOBBLE_AMP * scale.wobble) * motionBoost;
+        p.y +=
+          (p.vy + Math.cos(t * 0.6 + p.phase * 1.3) * WOBBLE_AMP * scale.wobble) * motionBoost +
+          scrollDelta * scale.scroll * -1;
 
         const dx = mouseX - p.x;
         const dy = mouseY - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < scaledMouseRadius && dist > 0) {
-          const force = (1 - dist / scaledMouseRadius) * MOUSE_STRENGTH * dpr * scale.mouse;
+          const force =
+            (1 - dist / scaledMouseRadius) *
+            MOUSE_STRENGTH *
+            dpr *
+            scale.mouse *
+            sectionProfile.mouse;
           p.x += dx * force;
           p.y += dy * force;
         }
@@ -342,12 +445,29 @@ export default function BackgroundCanvas() {
             closeNeighborDistSq.set(j, d2);
 
             const d = Math.sqrt(d2);
-            const alpha = (1 - d / scaledConnectDist) * EDGE_ALPHA * scale.brightness;
+            const midX = (p.x + q.x) * 0.5;
+            const midY = (p.y + q.y) * 0.5;
+            const cursorBoost =
+              mouseX > 0 && mouseY > 0
+                ? clamp01(1 - Math.hypot(mouseX - midX, mouseY - midY) / (scaledMouseRadius * 1.05))
+                : 0;
+            const heroBoost =
+              heroTitle && isHeroActive
+                ? clamp01(1 - Math.hypot(heroTitle.x - midX, heroTitle.y - midY) / (HERO_ZONE_RADIUS * dpr))
+                : 0;
+            const accentMix = Math.max(cursorBoost * 0.42, heroBoost * HERO_TITLE_BOOST);
+            const alpha =
+              (1 - d / scaledConnectDist) *
+              EDGE_ALPHA *
+              scale.brightness *
+              sectionProfile.edge *
+              (1 + heroBoost * 0.45);
+            const edgeColor = mixColor(palette.fg, palette.accent, accentMix + sectionProfile.accent);
 
             ctx!.beginPath();
             ctx!.moveTo(p.x, p.y);
             ctx!.lineTo(q.x, q.y);
-            ctx!.strokeStyle = rgba(palette.fg, alpha);
+            ctx!.strokeStyle = rgba(edgeColor, alpha);
             ctx!.lineWidth = EDGE_WIDTH;
             ctx!.stroke();
           }
@@ -377,7 +497,7 @@ export default function BackgroundCanvas() {
               const jqx = q.x - r.x;
               const jqy = q.y - r.y;
               const dqr2 = jqx * jqx + jqy * jqy;
-              if (dqr2 > distSq) continue;
+              if (dqr2 > facetDistSq) continue;
 
               ctx!.beginPath();
               ctx!.moveTo(p.x, p.y);
@@ -386,12 +506,37 @@ export default function BackgroundCanvas() {
               ctx!.closePath();
 
               // Smoothly fade facets near the edge distance threshold to avoid popping.
-              const maxEdgeRatio = Math.sqrt(Math.max(dpq2, dpr2, dqr2)) / scaledConnectDist;
+              const maxEdgeRatio =
+                Math.sqrt(Math.max(dpq2, dpr2, dqr2)) / scaledFacetConnectDist;
               const edgeFade = 1 - smoothstep(FACET_EDGE_FADE_START, 1, maxEdgeRatio);
-              const facetAlpha = FACET_ALPHA * scale.brightness * edgeFade;
+              const heroFacetBoost =
+                heroTitle && isHeroActive
+                  ? clamp01(
+                      1 -
+                        Math.hypot(
+                          heroTitle.x - (p.x + q.x + r.x) / 3,
+                          heroTitle.y - (p.y + q.y + r.y) / 3,
+                        ) /
+                          (HERO_ZONE_RADIUS * 1.15 * dpr),
+                    )
+                  : 0;
+              const facetAlpha =
+                FACET_ALPHA *
+                scale.brightness *
+                edgeFade *
+                sectionProfile.facet *
+                (1 + heroFacetBoost * 0.55);
               if (facetAlpha <= 0) continue;
 
-              ctx!.fillStyle = rgba(palette.fg, facetAlpha);
+              const facetColor = mixColor(
+                palette.fg,
+                palette.fgDim,
+                FACET_COLOR_BLEND + heroFacetBoost * 0.08,
+              );
+              ctx!.fillStyle = rgba(
+                facetColor,
+                facetAlpha,
+              );
               ctx!.fill();
             }
           }
@@ -403,7 +548,15 @@ export default function BackgroundCanvas() {
           const p = particles[i];
           const pulse = 1 + 0.15 * Math.sin(t * 2 + p.phase);
           const r = p.radius * pulse * dpr;
-          const [cr, cg, cb] = p.color;
+          const heroParticleBoost =
+            heroTitle && isHeroActive
+              ? clamp01(1 - Math.hypot(heroTitle.x - p.x, heroTitle.y - p.y) / (HERO_ZONE_RADIUS * dpr))
+              : 0;
+          const [cr, cg, cb] = mixColor(
+            p.color as [number, number, number],
+            palette.accent,
+            sectionProfile.accent * 0.2 + heroParticleBoost * 0.24,
+          );
           const a = p.brightness * (0.6 + 0.4 * Math.sin(t * 1.5 + p.phase));
 
           ctx!.beginPath();
@@ -414,7 +567,7 @@ export default function BackgroundCanvas() {
       }
 
       /* Scanlines */
-      ctx!.fillStyle = rgba(palette.fg, 0.03);
+      ctx!.fillStyle = rgba(palette.fg, SCANLINE_ALPHA);
       for (let sy = 0; sy < h; sy += 4) {
         ctx!.fillRect(0, sy, w, 1);
       }
@@ -423,13 +576,33 @@ export default function BackgroundCanvas() {
       if (mouseX > 0 && mouseY > 0) {
         const mgr = scaledMouseRadius * 1.2;
         const mg = ctx!.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, mgr);
-        mg.addColorStop(0, rgba(palette.fg, 0.04));
-        mg.addColorStop(0.5, rgba(palette.fg, 0.015));
+        mg.addColorStop(0, rgba(mixColor(palette.fg, palette.accent, 0.42), 0.05));
+        mg.addColorStop(0.45, rgba(palette.fg, 0.015));
         mg.addColorStop(1, "rgba(0,0,0,0)");
         ctx!.beginPath();
         ctx!.arc(mouseX, mouseY, mgr, 0, Math.PI * 2);
         ctx!.fillStyle = mg;
         ctx!.fill();
+      }
+
+      /* Harder shockwave rings */
+      for (let i = 0; i < shockwaves.length; i++) {
+        const age = t - shockwaves[i].time;
+        const progress = clamp01(age / SHOCKWAVE_DURATION);
+        const radius = progress * SHOCKWAVE_SPEED * dpr;
+        const alpha = (1 - progress) * SHOCKWAVE_DRAW_ALPHA;
+
+        ctx!.beginPath();
+        ctx!.arc(shockwaves[i].x, shockwaves[i].y, radius, 0, Math.PI * 2);
+        ctx!.strokeStyle = rgba(palette.accent, alpha);
+        ctx!.lineWidth = SHOCKWAVE_DRAW_WIDTH * dpr;
+        ctx!.stroke();
+
+        ctx!.beginPath();
+        ctx!.arc(shockwaves[i].x, shockwaves[i].y, Math.max(0, radius - 14 * dpr), 0, Math.PI * 2);
+        ctx!.strokeStyle = rgba(palette.fg, alpha * 0.6);
+        ctx!.lineWidth = Math.max(1, dpr);
+        ctx!.stroke();
       }
 
       /* Vignette */
@@ -438,7 +611,7 @@ export default function BackgroundCanvas() {
       const vRad = Math.max(w, h) * 0.7;
       const vg = ctx!.createRadialGradient(vx, vy, vRad * 0.4, vx, vy, vRad);
       vg.addColorStop(0, "rgba(0,0,0,0)");
-      vg.addColorStop(1, rgba(palette.bgRgb, 0.55));
+      vg.addColorStop(1, rgba(palette.bgRgb, VIGNETTE_ALPHA));
       ctx!.fillStyle = vg;
       ctx!.fillRect(0, 0, w, h);
 
@@ -452,6 +625,7 @@ export default function BackgroundCanvas() {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("click", onClick);
       themeObserver.disconnect();
     };

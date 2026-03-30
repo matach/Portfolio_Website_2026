@@ -40,7 +40,7 @@ export default function Navbar() {
           <a href={HERO_ANCHOR} className="page-rail__logo">
             MATHIAS/
           </a>
-          <span className="page-rail__role">Gameplay Programmer</span>
+          <span className="page-rail__role">Gameplay Programmer / VFX Artist</span>
         </div>
 
         <nav className="page-rail__nav">
@@ -65,11 +65,11 @@ export default function Navbar() {
         <div className="page-rail__meta">
           <div>
             <span className="page-rail__meta-label">Location</span>
-            <span className="page-rail__meta-value">EU / Remote</span>
+            <span className="page-rail__meta-value">EU / Austria</span>
           </div>
           <div>
             <span className="page-rail__meta-label">Status</span>
-            <span className="page-rail__meta-value">Open for roles</span>
+            <span className="page-rail__meta-value">Open to internships</span>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export default function Navbar() {
           >
             [{theme === "dark" ? "THEME: DARK" : "THEME: LIGHT"}]
           </button>
-          <span>Doc: TA-PORTFOLIO</span>
+          <span>Doc: GP-VFX-PORTFOLIO</span>
           <span>Rev: 02</span>
         </div>
       </div>
