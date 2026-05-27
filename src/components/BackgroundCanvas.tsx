@@ -1,13 +1,11 @@
 import { useEffect, useRef } from "react";
 
-/* ── Tunables ── */
 const PARTICLE_COUNT = 120;
 const CONNECT_DIST = 150;
 const MOUSE_RADIUS = 200;
 const MOUSE_STRENGTH = 0.0075;
 const BASE_SPEED = 0.15;
 const WOBBLE_AMP = 0.1;
-const GRID_CELL = CONNECT_DIST;
 const EDGE_ALPHA = 0.14;
 const EDGE_WIDTH = 0.8;
 const FACET_ALPHA = 0.035;
@@ -20,31 +18,21 @@ const HERO_ZONE_RADIUS = 280;
 const HERO_TITLE_BOOST = 0.32;
 const SHOCKWAVE_DRAW_ALPHA = 0.28;
 const SHOCKWAVE_DRAW_WIDTH = 1.6;
+const SHOCKWAVE_SPEED = 600;
+const SHOCKWAVE_FORCE = 8;
+const SHOCKWAVE_DURATION = 1.5;
+const MAX_SHOCKWAVES = 3;
+const RING_SEGMENTS = 52;
 
-function clamp01(v: number) {
-  return Math.max(0, Math.min(1, v));
-}
-
-function smoothstep(edge0: number, edge1: number, x: number) {
-  const t = clamp01((x - edge0) / (edge1 - edge0));
-  return t * t * (3 - 2 * t);
-}
-
-/* ── Depth layers ── */
 const LAYER_COUNTS = [45, 45, 30];
 const DEPTH_SCALES = [
   { radius: 0.3, speed: 0.26, brightness: 0.26, wobble: 0.18, mouse: 0.14, scroll: 0.03 },
   { radius: 0.68, speed: 0.62, brightness: 0.68, wobble: 0.58, mouse: 0.54, scroll: 0.08 },
   { radius: 1.08, speed: 1.12, brightness: 1.08, wobble: 1.08, mouse: 1.08, scroll: 0.16 },
-];
+] as const;
 
-/* ── Shockwave ── */
-const SHOCKWAVE_SPEED = 600;
-const SHOCKWAVE_FORCE = 8;
-const SHOCKWAVE_DURATION = 1.5;
-const MAX_SHOCKWAVES = 3;
+type Rgb = readonly [number, number, number];
 
-/* ── Types ── */
 interface Particle {
   x: number;
   y: number;
@@ -52,7 +40,7 @@ interface Particle {
   vy: number;
   radius: number;
   brightness: number;
-  color: readonly [number, number, number];
+  color: Rgb;
   phase: number;
   depth: number;
 }
@@ -65,13 +53,49 @@ interface Shockwave {
 
 interface Palette {
   bg: string;
-  bgRgb: [number, number, number];
-  fg: [number, number, number];
-  fgDim: [number, number, number];
-  accent: [number, number, number];
+  bgRgb: Rgb;
+  fg: Rgb;
+  fgDim: Rgb;
+  accent: Rgb;
 }
 
-function parseCssColor(value: string): [number, number, number] {
+interface MeshProgramInfo {
+  program: WebGLProgram;
+  attribPosition: number;
+  attribColor: number;
+  uniformResolution: WebGLUniformLocation;
+}
+
+interface PointProgramInfo {
+  program: WebGLProgram;
+  attribPosition: number;
+  attribSize: number;
+  attribColor: number;
+  uniformResolution: WebGLUniformLocation;
+}
+
+interface RadialProgramInfo {
+  program: WebGLProgram;
+  attribPosition: number;
+  uniformResolution: WebGLUniformLocation;
+  uniformCenter: WebGLUniformLocation;
+  uniformRadius: WebGLUniformLocation;
+  uniformInnerColor: WebGLUniformLocation;
+  uniformMidColor: WebGLUniformLocation;
+  uniformOuterColor: WebGLUniformLocation;
+  uniformMidStop: WebGLUniformLocation;
+}
+
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = clamp01((x - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+}
+
+function parseCssColor(value: string): Rgb {
   const color = value.trim();
   if (color.startsWith("#")) {
     const hex = color.slice(1);
@@ -97,15 +121,7 @@ function parseCssColor(value: string): [number, number, number] {
   return [255, 255, 255];
 }
 
-function rgba([r, g, b]: [number, number, number], a: number) {
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-function mixColor(
-  source: [number, number, number],
-  target: [number, number, number],
-  amount: number,
-): [number, number, number] {
+function mixColor(source: Rgb, target: Rgb, amount: number): [number, number, number] {
   const t = clamp01(amount);
   return [
     Math.round(source[0] + (target[0] - source[0]) * t),
@@ -129,19 +145,21 @@ function getSectionProfile(sectionId: string | null) {
   }
 }
 
-/* ── Spatial grid ── */
-function buildGrid(particles: Particle[], w: number, h: number) {
-  const cols = Math.ceil(w / GRID_CELL);
-  const rows = Math.ceil(h / GRID_CELL);
+function buildGrid(particles: Particle[], w: number, h: number, cellSize: number) {
+  const safeCellSize = Math.max(1, cellSize);
+  const cols = Math.max(1, Math.ceil(w / safeCellSize));
+  const rows = Math.max(1, Math.ceil(h / safeCellSize));
   const grid: number[][] = new Array(cols * rows);
-  for (let i = 0; i < grid.length; i++) grid[i] = [];
+  for (let i = 0; i < grid.length; i++) {
+    grid[i] = [];
+  }
   for (let i = 0; i < particles.length; i++) {
-    const p = particles[i];
-    const col = Math.min(Math.floor(p.x / GRID_CELL), cols - 1);
-    const row = Math.min(Math.floor(p.y / GRID_CELL), rows - 1);
+    const particle = particles[i];
+    const col = Math.min(Math.floor(particle.x / safeCellSize), cols - 1);
+    const row = Math.min(Math.floor(particle.y / safeCellSize), rows - 1);
     grid[row * cols + col].push(i);
   }
-  return { grid, cols, rows };
+  return { grid, cols, rows, cellSize: safeCellSize };
 }
 
 function getNeighborIndices(
@@ -150,19 +168,417 @@ function getNeighborIndices(
   rows: number,
   col: number,
   row: number,
-): number[] {
+) {
   const result: number[] = [];
   for (let dr = -1; dr <= 1; dr++) {
     for (let dc = -1; dc <= 1; dc++) {
-      const r = row + dr;
-      const c = col + dc;
-      if (r >= 0 && r < rows && c >= 0 && c < cols) {
-        const cell = grid[r * cols + c];
-        for (let k = 0; k < cell.length; k++) result.push(cell[k]);
+      const nextRow = row + dr;
+      const nextCol = col + dc;
+      if (nextRow >= 0 && nextRow < rows && nextCol >= 0 && nextCol < cols) {
+        const cell = grid[nextRow * cols + nextCol];
+        for (let i = 0; i < cell.length; i++) {
+          result.push(cell[i]);
+        }
       }
     }
   }
   return result;
+}
+
+function createShader(gl: WebGLRenderingContext, type: number, source: string) {
+  const shader = gl.createShader(type);
+  if (!shader) {
+    throw new Error("Unable to create WebGL shader.");
+  }
+
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const message = gl.getShaderInfoLog(shader) ?? "Unknown shader compile failure.";
+    gl.deleteShader(shader);
+    throw new Error(message);
+  }
+
+  return shader;
+}
+
+function createProgram(gl: WebGLRenderingContext, vertexSource: string, fragmentSource: string) {
+  const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+  const program = gl.createProgram();
+
+  if (!program) {
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+    throw new Error("Unable to create WebGL program.");
+  }
+
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  gl.deleteShader(vertexShader);
+  gl.deleteShader(fragmentShader);
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const message = gl.getProgramInfoLog(program) ?? "Unknown WebGL link failure.";
+    gl.deleteProgram(program);
+    throw new Error(message);
+  }
+
+  return program;
+}
+
+function getUniformLocation(
+  gl: WebGLRenderingContext,
+  program: WebGLProgram,
+  name: string,
+) {
+  const location = gl.getUniformLocation(program, name);
+  if (!location) {
+    throw new Error(`Missing uniform: ${name}`);
+  }
+  return location;
+}
+
+function createMeshProgram(gl: WebGLRenderingContext): MeshProgramInfo {
+  const program = createProgram(
+    gl,
+    `
+      attribute vec2 a_position;
+      attribute vec4 a_color;
+      uniform vec2 u_resolution;
+      varying vec4 v_color;
+
+      void main() {
+        vec2 zeroToOne = a_position / u_resolution;
+        vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+        v_color = a_color;
+      }
+    `,
+    `
+      precision mediump float;
+      varying vec4 v_color;
+
+      void main() {
+        gl_FragColor = v_color;
+      }
+    `,
+  );
+
+  return {
+    program,
+    attribPosition: gl.getAttribLocation(program, "a_position"),
+    attribColor: gl.getAttribLocation(program, "a_color"),
+    uniformResolution: getUniformLocation(gl, program, "u_resolution"),
+  };
+}
+
+function createPointProgram(gl: WebGLRenderingContext): PointProgramInfo {
+  const program = createProgram(
+    gl,
+    `
+      attribute vec2 a_position;
+      attribute float a_size;
+      attribute vec4 a_color;
+      uniform vec2 u_resolution;
+      varying vec4 v_color;
+
+      void main() {
+        vec2 zeroToOne = a_position / u_resolution;
+        vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+        gl_PointSize = a_size;
+        v_color = a_color;
+      }
+    `,
+    `
+      precision mediump float;
+      varying vec4 v_color;
+
+      void main() {
+        vec2 pointUv = gl_PointCoord * 2.0 - 1.0;
+        float distSq = dot(pointUv, pointUv);
+        if (distSq > 1.0) {
+          discard;
+        }
+
+        float edgeFade = 1.0 - smoothstep(0.55, 1.0, distSq);
+        float coreBoost = 0.22 * (1.0 - smoothstep(0.0, 0.35, distSq));
+        float alpha = v_color.a * clamp(edgeFade + coreBoost, 0.0, 1.0);
+        gl_FragColor = vec4(v_color.rgb, alpha);
+      }
+    `,
+  );
+
+  return {
+    program,
+    attribPosition: gl.getAttribLocation(program, "a_position"),
+    attribSize: gl.getAttribLocation(program, "a_size"),
+    attribColor: gl.getAttribLocation(program, "a_color"),
+    uniformResolution: getUniformLocation(gl, program, "u_resolution"),
+  };
+}
+
+function createRadialProgram(gl: WebGLRenderingContext): RadialProgramInfo {
+  const program = createProgram(
+    gl,
+    `
+      attribute vec2 a_position;
+      uniform vec2 u_resolution;
+      varying vec2 v_position;
+
+      void main() {
+        vec2 zeroToOne = a_position / u_resolution;
+        vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+        gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+        v_position = a_position;
+      }
+    `,
+    `
+      precision mediump float;
+      varying vec2 v_position;
+      uniform vec2 u_center;
+      uniform float u_radius;
+      uniform vec4 u_innerColor;
+      uniform vec4 u_midColor;
+      uniform vec4 u_outerColor;
+      uniform float u_midStop;
+
+      void main() {
+        float radius = max(u_radius, 0.0001);
+        float distanceRatio = clamp(distance(v_position, u_center) / radius, 0.0, 1.0);
+        vec4 color = distanceRatio < u_midStop
+          ? mix(u_innerColor, u_midColor, smoothstep(0.0, u_midStop, distanceRatio))
+          : mix(u_midColor, u_outerColor, smoothstep(u_midStop, 1.0, distanceRatio));
+        gl_FragColor = color;
+      }
+    `,
+  );
+
+  return {
+    program,
+    attribPosition: gl.getAttribLocation(program, "a_position"),
+    uniformResolution: getUniformLocation(gl, program, "u_resolution"),
+    uniformCenter: getUniformLocation(gl, program, "u_center"),
+    uniformRadius: getUniformLocation(gl, program, "u_radius"),
+    uniformInnerColor: getUniformLocation(gl, program, "u_innerColor"),
+    uniformMidColor: getUniformLocation(gl, program, "u_midColor"),
+    uniformOuterColor: getUniformLocation(gl, program, "u_outerColor"),
+    uniformMidStop: getUniformLocation(gl, program, "u_midStop"),
+  };
+}
+
+function pushColorVertex(
+  target: number[],
+  x: number,
+  y: number,
+  color: Rgb,
+  alpha: number,
+) {
+  target.push(x, y, color[0] / 255, color[1] / 255, color[2] / 255, clamp01(alpha));
+}
+
+function pushQuadPositions(
+  target: number[],
+  left: number,
+  top: number,
+  right: number,
+  bottom: number,
+) {
+  target.push(
+    left,
+    top,
+    right,
+    top,
+    right,
+    bottom,
+    left,
+    top,
+    right,
+    bottom,
+    left,
+    bottom,
+  );
+}
+
+function pushLineQuad(
+  target: number[],
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  width: number,
+  color: Rgb,
+  alpha: number,
+) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const length = Math.hypot(dx, dy);
+  if (length <= 0.0001) {
+    return;
+  }
+
+  const halfWidth = width * 0.5;
+  const nx = (-dy / length) * halfWidth;
+  const ny = (dx / length) * halfWidth;
+
+  const v1x = ax + nx;
+  const v1y = ay + ny;
+  const v2x = ax - nx;
+  const v2y = ay - ny;
+  const v3x = bx - nx;
+  const v3y = by - ny;
+  const v4x = bx + nx;
+  const v4y = by + ny;
+
+  pushColorVertex(target, v1x, v1y, color, alpha);
+  pushColorVertex(target, v2x, v2y, color, alpha);
+  pushColorVertex(target, v3x, v3y, color, alpha);
+
+  pushColorVertex(target, v1x, v1y, color, alpha);
+  pushColorVertex(target, v3x, v3y, color, alpha);
+  pushColorVertex(target, v4x, v4y, color, alpha);
+}
+
+function pushRing(
+  target: number[],
+  centerX: number,
+  centerY: number,
+  innerRadius: number,
+  outerRadius: number,
+  color: Rgb,
+  alpha: number,
+) {
+  if (outerRadius <= 0 || outerRadius <= innerRadius) {
+    return;
+  }
+
+  for (let i = 0; i < RING_SEGMENTS; i++) {
+    const t0 = (i / RING_SEGMENTS) * Math.PI * 2;
+    const t1 = ((i + 1) / RING_SEGMENTS) * Math.PI * 2;
+    const cos0 = Math.cos(t0);
+    const sin0 = Math.sin(t0);
+    const cos1 = Math.cos(t1);
+    const sin1 = Math.sin(t1);
+
+    const outer0x = centerX + cos0 * outerRadius;
+    const outer0y = centerY + sin0 * outerRadius;
+    const inner0x = centerX + cos0 * innerRadius;
+    const inner0y = centerY + sin0 * innerRadius;
+    const outer1x = centerX + cos1 * outerRadius;
+    const outer1y = centerY + sin1 * outerRadius;
+    const inner1x = centerX + cos1 * innerRadius;
+    const inner1y = centerY + sin1 * innerRadius;
+
+    pushColorVertex(target, outer0x, outer0y, color, alpha);
+    pushColorVertex(target, inner0x, inner0y, color, alpha);
+    pushColorVertex(target, inner1x, inner1y, color, alpha);
+
+    pushColorVertex(target, outer0x, outer0y, color, alpha);
+    pushColorVertex(target, inner1x, inner1y, color, alpha);
+    pushColorVertex(target, outer1x, outer1y, color, alpha);
+  }
+}
+
+function colorToVec4(color: Rgb, alpha: number): [number, number, number, number] {
+  return [color[0] / 255, color[1] / 255, color[2] / 255, clamp01(alpha)];
+}
+
+function drawMesh(
+  gl: WebGLRenderingContext,
+  programInfo: MeshProgramInfo,
+  buffer: WebGLBuffer,
+  resolutionWidth: number,
+  resolutionHeight: number,
+  data: number[],
+) {
+  if (data.length === 0) {
+    return;
+  }
+
+  gl.useProgram(programInfo.program);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+
+  gl.enableVertexAttribArray(programInfo.attribPosition);
+  gl.vertexAttribPointer(programInfo.attribPosition, 2, gl.FLOAT, false, 24, 0);
+
+  gl.enableVertexAttribArray(programInfo.attribColor);
+  gl.vertexAttribPointer(programInfo.attribColor, 4, gl.FLOAT, false, 24, 8);
+
+  gl.uniform2f(programInfo.uniformResolution, resolutionWidth, resolutionHeight);
+  gl.drawArrays(gl.TRIANGLES, 0, data.length / 6);
+}
+
+function drawPoints(
+  gl: WebGLRenderingContext,
+  programInfo: PointProgramInfo,
+  buffer: WebGLBuffer,
+  resolutionWidth: number,
+  resolutionHeight: number,
+  data: number[],
+) {
+  if (data.length === 0) {
+    return;
+  }
+
+  gl.useProgram(programInfo.program);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+
+  gl.enableVertexAttribArray(programInfo.attribPosition);
+  gl.vertexAttribPointer(programInfo.attribPosition, 2, gl.FLOAT, false, 28, 0);
+
+  gl.enableVertexAttribArray(programInfo.attribSize);
+  gl.vertexAttribPointer(programInfo.attribSize, 1, gl.FLOAT, false, 28, 8);
+
+  gl.enableVertexAttribArray(programInfo.attribColor);
+  gl.vertexAttribPointer(programInfo.attribColor, 4, gl.FLOAT, false, 28, 12);
+
+  gl.uniform2f(programInfo.uniformResolution, resolutionWidth, resolutionHeight);
+  gl.drawArrays(gl.POINTS, 0, data.length / 7);
+}
+
+function drawRadial(
+  gl: WebGLRenderingContext,
+  programInfo: RadialProgramInfo,
+  buffer: WebGLBuffer,
+  resolutionWidth: number,
+  resolutionHeight: number,
+  left: number,
+  top: number,
+  right: number,
+  bottom: number,
+  centerX: number,
+  centerY: number,
+  radius: number,
+  innerColor: [number, number, number, number],
+  midColor: [number, number, number, number],
+  outerColor: [number, number, number, number],
+  midStop: number,
+) {
+  const vertices: number[] = [];
+  pushQuadPositions(vertices, left, top, right, bottom);
+
+  gl.useProgram(programInfo.program);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+
+  gl.enableVertexAttribArray(programInfo.attribPosition);
+  gl.vertexAttribPointer(programInfo.attribPosition, 2, gl.FLOAT, false, 8, 0);
+
+  gl.uniform2f(programInfo.uniformResolution, resolutionWidth, resolutionHeight);
+  gl.uniform2f(programInfo.uniformCenter, centerX, centerY);
+  gl.uniform1f(programInfo.uniformRadius, radius);
+  gl.uniform4f(programInfo.uniformInnerColor, ...innerColor);
+  gl.uniform4f(programInfo.uniformMidColor, ...midColor);
+  gl.uniform4f(programInfo.uniformOuterColor, ...outerColor);
+  gl.uniform1f(programInfo.uniformMidStop, clamp01(midStop));
+
+  gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2);
 }
 
 export default function BackgroundCanvas() {
@@ -170,10 +586,58 @@ export default function BackgroundCanvas() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
 
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: true,
+      depth: false,
+      stencil: false,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: false,
+      powerPreference: "high-performance",
+    });
+
+    if (!gl) {
+      return;
+    }
+
+    const canvasElement = canvas;
+    const glContext = gl;
+
+    let meshProgram: MeshProgramInfo;
+    let pointProgram: PointProgramInfo;
+    let radialProgram: RadialProgramInfo;
+    let meshBuffer: WebGLBuffer;
+    let pointBuffer: WebGLBuffer;
+    let radialBuffer: WebGLBuffer;
+
+    try {
+      meshProgram = createMeshProgram(glContext);
+      pointProgram = createPointProgram(glContext);
+      radialProgram = createRadialProgram(glContext);
+
+      const createdMeshBuffer = glContext.createBuffer();
+      const createdPointBuffer = glContext.createBuffer();
+      const createdRadialBuffer = glContext.createBuffer();
+
+      if (!createdMeshBuffer || !createdPointBuffer || !createdRadialBuffer) {
+        throw new Error("Unable to create WebGL buffers.");
+      }
+
+      meshBuffer = createdMeshBuffer;
+      pointBuffer = createdPointBuffer;
+      radialBuffer = createdRadialBuffer;
+    } catch (error) {
+      console.error("Failed to initialize background WebGL renderer.", error);
+      return;
+    }
+
+    glContext.disable(glContext.DEPTH_TEST);
+    glContext.enable(glContext.BLEND);
+    glContext.blendFunc(glContext.SRC_ALPHA, glContext.ONE_MINUS_SRC_ALPHA);
 
     let mouseX = -9999;
     let mouseY = -9999;
@@ -190,6 +654,7 @@ export default function BackgroundCanvas() {
     let scrollTarget = window.scrollY;
     let scrollCurrent = scrollTarget;
     let scrollVelocity = 0;
+    let raf = 0;
 
     const shockwaves: Shockwave[] = [];
     const particles: Particle[] = [];
@@ -202,19 +667,22 @@ export default function BackgroundCanvas() {
       const fgDim = parseCssColor(rootStyle.getPropertyValue("--fg-dim") || "#888888");
       const accent = parseCssColor(rootStyle.getPropertyValue("--accent") || "#a4ff44");
       palette = { bg, bgRgb, fg, fgDim, accent };
+      canvasElement.style.backgroundColor = bg;
     }
 
     function initParticles() {
       particles.length = 0;
       let idx = 0;
+
       for (let depth = 0; depth < 3; depth++) {
         const count = LAYER_COUNTS[depth];
         const scale = DEPTH_SCALES[depth];
+
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
           const speed = BASE_SPEED * scale.speed;
-          // 80% bright theme color, 20% dim theme color
           const color = idx % 5 === 0 ? palette.fgDim : palette.fg;
+
           particles.push({
             x: Math.random() * w,
             y: Math.random() * h,
@@ -226,6 +694,7 @@ export default function BackgroundCanvas() {
             phase: Math.random() * Math.PI * 2,
             depth,
           });
+
           idx++;
         }
       }
@@ -233,56 +702,46 @@ export default function BackgroundCanvas() {
 
     function resize() {
       const dpr = Math.min(window.devicePixelRatio, 2);
-      w = canvas!.clientWidth * dpr;
-      h = canvas!.clientHeight * dpr;
-      canvas!.width = w;
-      canvas!.height = h;
-      if (particles.length === 0) initParticles();
-    }
-    updatePalette();
-    resize();
-    window.addEventListener("resize", resize);
+      w = Math.max(1, Math.floor(canvasElement.clientWidth * dpr));
+      h = Math.max(1, Math.floor(canvasElement.clientHeight * dpr));
+      canvasElement.width = w;
+      canvasElement.height = h;
+      glContext.viewport(0, 0, w, h);
 
-    const themeObserver = new MutationObserver(() => {
-      updatePalette();
-      // Refresh particle palette without resetting positions.
-      for (let i = 0; i < particles.length; i++) {
-        particles[i].color = i % 5 === 0 ? palette.fgDim : palette.fg;
+      if (particles.length === 0) {
+        initParticles();
       }
-    });
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme", "style"],
-    });
-
-    function onMouseMove(e: MouseEvent) {
-      const dpr = Math.min(window.devicePixelRatio, 2);
-      mouseX = e.clientX * dpr;
-      mouseY = e.clientY * dpr;
-      hoveredSectionId =
-        (e.target instanceof Element && e.target.closest("section")?.id) || null;
     }
+
+    function onMouseMove(event: MouseEvent) {
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      mouseX = event.clientX * dpr;
+      mouseY = event.clientY * dpr;
+      hoveredSectionId =
+        (event.target instanceof Element && event.target.closest("section")?.id) || null;
+    }
+
     function onMouseLeave() {
       mouseX = -9999;
       mouseY = -9999;
       hoveredSectionId = null;
     }
+
     function onScroll() {
       scrollTarget = window.scrollY;
     }
-    function onClick(e: MouseEvent) {
+
+    function onClick(event: MouseEvent) {
       const dpr = Math.min(window.devicePixelRatio, 2);
-      if (shockwaves.length >= MAX_SHOCKWAVES) shockwaves.shift();
+      if (shockwaves.length >= MAX_SHOCKWAVES) {
+        shockwaves.shift();
+      }
       shockwaves.push({
-        x: e.clientX * dpr,
-        y: e.clientY * dpr,
+        x: event.clientX * dpr,
+        y: event.clientY * dpr,
         time: (performance.now() - startTime) / 1000,
       });
     }
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseleave", onMouseLeave);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("click", onClick);
 
     function getLayerIndices(): [number[], number[], number[]] {
       const layers: [number[], number[], number[]] = [[], [], []];
@@ -292,9 +751,6 @@ export default function BackgroundCanvas() {
       return layers;
     }
 
-    let raf: number;
-    const startTime = performance.now();
-
     function getActiveSectionId() {
       const ids = ["hero", "projects", "about", "contact"];
       const probeY = window.innerHeight * 0.36;
@@ -302,10 +758,16 @@ export default function BackgroundCanvas() {
       let bestDistance = Number.POSITIVE_INFINITY;
 
       for (let i = 0; i < ids.length; i++) {
-        const el = document.getElementById(ids[i]);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+        const element = document.getElementById(ids[i]);
+        if (!element) {
+          continue;
+        }
+
+        const rect = element.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+          continue;
+        }
+
         const center = rect.top + rect.height / 2;
         const distance = Math.abs(center - probeY);
         if (distance < bestDistance) {
@@ -319,13 +781,14 @@ export default function BackgroundCanvas() {
 
     function getHeroTitleCenter(dpr: number) {
       const title = document.querySelector(".hero-content__title");
-      if (!(title instanceof HTMLElement)) return null;
+      if (!(title instanceof HTMLElement)) {
+        return null;
+      }
+
       const rect = title.getBoundingClientRect();
       return {
         x: (rect.left + rect.width * 0.5) * dpr,
         y: (rect.top + rect.height * 0.5) * dpr,
-        width: rect.width * dpr,
-        height: rect.height * dpr,
       };
     }
 
@@ -339,35 +802,40 @@ export default function BackgroundCanvas() {
       scrollVelocity += scrollForce * 0.012;
       scrollVelocity *= 0.86;
       scrollCurrent += scrollVelocity;
+
       const scrollDelta = Math.max(-5, Math.min(5, scrollVelocity)) * dpr;
       const scaledMouseRadius = MOUSE_RADIUS * dpr;
       const scaledConnectDist = CONNECT_DIST * dpr;
-      const distSq = scaledConnectDist * scaledConnectDist;
+      const connectDistSq = scaledConnectDist * scaledConnectDist;
       const scaledFacetConnectDist = scaledConnectDist * FACET_CONNECT_DIST_MULTIPLIER;
       const facetDistSq = scaledFacetConnectDist * scaledFacetConnectDist;
       const heroTitle = getHeroTitleCenter(dpr);
       const isHeroActive = activeSectionId === "hero";
+      const lineWidth = Math.max(1, EDGE_WIDTH * dpr);
+      const gridCell = scaledConnectDist;
 
-      /* Update shockwaves */
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         if (t - shockwaves[i].time > SHOCKWAVE_DURATION) {
           shockwaves.splice(i, 1);
         }
       }
 
-      /* Update particles */
       for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        const scale = DEPTH_SCALES[p.depth];
-        const motionBoost = sectionProfile.speed * (0.94 + p.depth * 0.08);
+        const particle = particles[i];
+        const scale = DEPTH_SCALES[particle.depth];
+        const motionBoost = sectionProfile.speed * (0.94 + particle.depth * 0.08);
 
-        p.x += (p.vx + Math.sin(t * 0.8 + p.phase) * WOBBLE_AMP * scale.wobble) * motionBoost;
-        p.y +=
-          (p.vy + Math.cos(t * 0.6 + p.phase * 1.3) * WOBBLE_AMP * scale.wobble) * motionBoost +
+        particle.x +=
+          (particle.vx + Math.sin(t * 0.8 + particle.phase) * WOBBLE_AMP * scale.wobble) *
+          motionBoost;
+        particle.y +=
+          (particle.vy +
+            Math.cos(t * 0.6 + particle.phase * 1.3) * WOBBLE_AMP * scale.wobble) *
+            motionBoost +
           scrollDelta * scale.scroll * -1;
 
-        const dx = mouseX - p.x;
-        const dy = mouseY - p.y;
+        const dx = mouseX - particle.x;
+        const dy = mouseY - particle.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < scaledMouseRadius && dist > 0) {
           const force =
@@ -376,146 +844,176 @@ export default function BackgroundCanvas() {
             dpr *
             scale.mouse *
             sectionProfile.mouse;
-          p.x += dx * force;
-          p.y += dy * force;
+          particle.x += dx * force;
+          particle.y += dy * force;
         }
 
         for (let s = 0; s < shockwaves.length; s++) {
-          const sw = shockwaves[s];
-          const age = t - sw.time;
+          const shockwave = shockwaves[s];
+          const age = t - shockwave.time;
           const ringRadius = age * SHOCKWAVE_SPEED * dpr;
-          const sdx = p.x - sw.x;
-          const sdy = p.y - sw.y;
-          const sDist = Math.sqrt(sdx * sdx + sdy * sdy);
+          const sdx = particle.x - shockwave.x;
+          const sdy = particle.y - shockwave.y;
+          const shockDist = Math.sqrt(sdx * sdx + sdy * sdy);
           const ringWidth = 80 * dpr;
-          const distFromRing = Math.abs(sDist - ringRadius);
-          if (distFromRing < ringWidth && sDist > 0) {
-            const strength = (1 - distFromRing / ringWidth) * (1 - age / SHOCKWAVE_DURATION) * SHOCKWAVE_FORCE * dpr;
-            p.x += (sdx / sDist) * strength;
-            p.y += (sdy / sDist) * strength;
+          const distFromRing = Math.abs(shockDist - ringRadius);
+
+          if (distFromRing < ringWidth && shockDist > 0) {
+            const strength =
+              (1 - distFromRing / ringWidth) *
+              (1 - age / SHOCKWAVE_DURATION) *
+              SHOCKWAVE_FORCE *
+              dpr;
+            particle.x += (sdx / shockDist) * strength;
+            particle.y += (sdy / shockDist) * strength;
           }
         }
 
-        if (p.x < 0) p.x += w;
-        else if (p.x > w) p.x -= w;
-        if (p.y < 0) p.y += h;
-        else if (p.y > h) p.y -= h;
+        if (particle.x < 0) {
+          particle.x += w;
+        } else if (particle.x > w) {
+          particle.x -= w;
+        }
+
+        if (particle.y < 0) {
+          particle.y += h;
+        } else if (particle.y > h) {
+          particle.y -= h;
+        }
       }
 
-      /* Clear */
-      ctx!.fillStyle = palette.bg;
-      ctx!.fillRect(0, 0, w, h);
+      glContext.clearColor(
+        palette.bgRgb[0] / 255,
+        palette.bgRgb[1] / 255,
+        palette.bgRgb[2] / 255,
+        1,
+      );
+      glContext.clear(glContext.COLOR_BUFFER_BIT);
 
-      /* Spatial grid */
-      const { grid, cols, rows } = buildGrid(particles, w, h);
+      const facetVertices: number[] = [];
+      const lineVertices: number[] = [];
+      const particleVertices: number[] = [];
+      const scanlineVertices: number[] = [];
+      const shockwaveVertices: number[] = [];
+
+      const { grid, cols, rows, cellSize } = buildGrid(particles, w, h, gridCell);
       const layerIndices = getLayerIndices();
 
-      /* Render each depth layer */
       for (let depth = 0; depth < 3; depth++) {
         const layerParticles = layerIndices[depth];
         const scale = DEPTH_SCALES[depth];
-
         const drawnPairs = new Set<number>();
         const drawnTriangles = new Set<string>();
 
         for (let li = 0; li < layerParticles.length; li++) {
           const i = layerParticles[li];
-          const p = particles[i];
-          const col = Math.min(Math.floor(p.x / GRID_CELL), cols - 1);
-          const row = Math.min(Math.floor(p.y / GRID_CELL), rows - 1);
+          const particle = particles[i];
+          const col = Math.min(Math.floor(particle.x / cellSize), cols - 1);
+          const row = Math.min(Math.floor(particle.y / cellSize), rows - 1);
           const neighbors = getNeighborIndices(grid, cols, rows, col, row);
           const closeNeighbors: number[] = [];
           const closeNeighborDistSq = new Map<number, number>();
 
-          /* Edge lines */
           for (let n = 0; n < neighbors.length; n++) {
             const j = neighbors[n];
-            if (j <= i || particles[j].depth !== depth) continue;
+            if (j <= i || particles[j].depth !== depth) {
+              continue;
+            }
 
             const key = i * PARTICLE_COUNT + j;
-            if (drawnPairs.has(key)) continue;
+            if (drawnPairs.has(key)) {
+              continue;
+            }
             drawnPairs.add(key);
 
-            const q = particles[j];
-            const ddx = p.x - q.x;
-            const ddy = p.y - q.y;
-            const d2 = ddx * ddx + ddy * ddy;
-            if (d2 > distSq) continue;
-            closeNeighbors.push(j);
-            closeNeighborDistSq.set(j, d2);
+            const other = particles[j];
+            const ddx = particle.x - other.x;
+            const ddy = particle.y - other.y;
+            const distSq = ddx * ddx + ddy * ddy;
+            if (distSq > connectDistSq) {
+              continue;
+            }
 
-            const d = Math.sqrt(d2);
-            const midX = (p.x + q.x) * 0.5;
-            const midY = (p.y + q.y) * 0.5;
+            closeNeighbors.push(j);
+            closeNeighborDistSq.set(j, distSq);
+
+            const distance = Math.sqrt(distSq);
+            const midX = (particle.x + other.x) * 0.5;
+            const midY = (particle.y + other.y) * 0.5;
             const cursorBoost =
               mouseX > 0 && mouseY > 0
                 ? clamp01(1 - Math.hypot(mouseX - midX, mouseY - midY) / (scaledMouseRadius * 1.05))
                 : 0;
             const heroBoost =
               heroTitle && isHeroActive
-                ? clamp01(1 - Math.hypot(heroTitle.x - midX, heroTitle.y - midY) / (HERO_ZONE_RADIUS * dpr))
+                ? clamp01(
+                    1 - Math.hypot(heroTitle.x - midX, heroTitle.y - midY) / (HERO_ZONE_RADIUS * dpr),
+                  )
                 : 0;
             const accentMix = Math.max(cursorBoost * 0.42, heroBoost * HERO_TITLE_BOOST);
             const alpha =
-              (1 - d / scaledConnectDist) *
+              (1 - distance / scaledConnectDist) *
               EDGE_ALPHA *
               scale.brightness *
               sectionProfile.edge *
               (1 + heroBoost * 0.45);
             const edgeColor = mixColor(palette.fg, palette.accent, accentMix + sectionProfile.accent);
 
-            ctx!.beginPath();
-            ctx!.moveTo(p.x, p.y);
-            ctx!.lineTo(q.x, q.y);
-            ctx!.strokeStyle = rgba(edgeColor, alpha);
-            ctx!.lineWidth = EDGE_WIDTH;
-            ctx!.stroke();
+            pushLineQuad(
+              lineVertices,
+              particle.x,
+              particle.y,
+              other.x,
+              other.y,
+              lineWidth,
+              edgeColor,
+              alpha,
+            );
           }
 
-          /* Subtle filled facets for stronger low-poly read */
           for (let a = 0; a < closeNeighbors.length; a++) {
             const j = closeNeighbors[a];
-            const q = particles[j];
-            const qCol = Math.min(Math.floor(q.x / GRID_CELL), cols - 1);
-            const qRow = Math.min(Math.floor(q.y / GRID_CELL), rows - 1);
-            const qNeighbors = getNeighborIndices(grid, cols, rows, qCol, qRow);
+            const other = particles[j];
+            const otherCol = Math.min(Math.floor(other.x / cellSize), cols - 1);
+            const otherRow = Math.min(Math.floor(other.y / cellSize), rows - 1);
+            const otherNeighbors = getNeighborIndices(grid, cols, rows, otherCol, otherRow);
 
             for (let b = a + 1; b < closeNeighbors.length; b++) {
               const k = closeNeighbors[b];
-              if (k === j) continue;
-              if (!qNeighbors.includes(k)) continue;
-              if (particles[k].depth !== depth) continue;
+              if (k === j || !otherNeighbors.includes(k) || particles[k].depth !== depth) {
+                continue;
+              }
 
-              const tri = [i, j, k].sort((m, n) => m - n).join("-");
-              if (drawnTriangles.has(tri)) continue;
-              drawnTriangles.add(tri);
+              const triangleKey = [i, j, k].sort((m, n) => m - n).join("-");
+              if (drawnTriangles.has(triangleKey)) {
+                continue;
+              }
+              drawnTriangles.add(triangleKey);
 
-              const r = particles[k];
-              const dpq2 = closeNeighborDistSq.get(j);
-              const dpr2 = closeNeighborDistSq.get(k);
-              if (dpq2 === undefined || dpr2 === undefined) continue;
-              const jqx = q.x - r.x;
-              const jqy = q.y - r.y;
-              const dqr2 = jqx * jqx + jqy * jqy;
-              if (dqr2 > facetDistSq) continue;
+              const third = particles[k];
+              const distPqSq = closeNeighborDistSq.get(j);
+              const distPrSq = closeNeighborDistSq.get(k);
+              if (distPqSq === undefined || distPrSq === undefined) {
+                continue;
+              }
 
-              ctx!.beginPath();
-              ctx!.moveTo(p.x, p.y);
-              ctx!.lineTo(q.x, q.y);
-              ctx!.lineTo(r.x, r.y);
-              ctx!.closePath();
+              const qrx = other.x - third.x;
+              const qry = other.y - third.y;
+              const distQrSq = qrx * qrx + qry * qry;
+              if (distQrSq > facetDistSq) {
+                continue;
+              }
 
-              // Smoothly fade facets near the edge distance threshold to avoid popping.
               const maxEdgeRatio =
-                Math.sqrt(Math.max(dpq2, dpr2, dqr2)) / scaledFacetConnectDist;
+                Math.sqrt(Math.max(distPqSq, distPrSq, distQrSq)) / scaledFacetConnectDist;
               const edgeFade = 1 - smoothstep(FACET_EDGE_FADE_START, 1, maxEdgeRatio);
               const heroFacetBoost =
                 heroTitle && isHeroActive
                   ? clamp01(
                       1 -
                         Math.hypot(
-                          heroTitle.x - (p.x + q.x + r.x) / 3,
-                          heroTitle.y - (p.y + q.y + r.y) / 3,
+                          heroTitle.x - (particle.x + other.x + third.x) / 3,
+                          heroTitle.y - (particle.y + other.y + third.y) / 3,
                         ) /
                           (HERO_ZONE_RADIUS * 1.15 * dpr),
                     )
@@ -526,108 +1024,187 @@ export default function BackgroundCanvas() {
                 edgeFade *
                 sectionProfile.facet *
                 (1 + heroFacetBoost * 0.55);
-              if (facetAlpha <= 0) continue;
+              if (facetAlpha <= 0) {
+                continue;
+              }
 
               const facetColor = mixColor(
                 palette.fg,
                 palette.fgDim,
                 FACET_COLOR_BLEND + heroFacetBoost * 0.08,
               );
-              ctx!.fillStyle = rgba(
-                facetColor,
-                facetAlpha,
-              );
-              ctx!.fill();
+
+              pushColorVertex(facetVertices, particle.x, particle.y, facetColor, facetAlpha);
+              pushColorVertex(facetVertices, other.x, other.y, facetColor, facetAlpha);
+              pushColorVertex(facetVertices, third.x, third.y, facetColor, facetAlpha);
             }
           }
         }
 
-        /* Particle dots */
         for (let li = 0; li < layerParticles.length; li++) {
-          const i = layerParticles[li];
-          const p = particles[i];
-          const pulse = 1 + 0.15 * Math.sin(t * 2 + p.phase);
-          const r = p.radius * pulse * dpr;
+          const particle = particles[layerParticles[li]];
+          const pulse = 1 + 0.15 * Math.sin(t * 2 + particle.phase);
+          const size = Math.max(2, particle.radius * pulse * dpr * 2.6);
           const heroParticleBoost =
             heroTitle && isHeroActive
-              ? clamp01(1 - Math.hypot(heroTitle.x - p.x, heroTitle.y - p.y) / (HERO_ZONE_RADIUS * dpr))
+              ? clamp01(
+                  1 - Math.hypot(heroTitle.x - particle.x, heroTitle.y - particle.y) / (HERO_ZONE_RADIUS * dpr),
+                )
               : 0;
-          const [cr, cg, cb] = mixColor(
-            p.color as [number, number, number],
+          const particleColor = mixColor(
+            particle.color,
             palette.accent,
             sectionProfile.accent * 0.2 + heroParticleBoost * 0.24,
           );
-          const a = p.brightness * (0.6 + 0.4 * Math.sin(t * 1.5 + p.phase));
+          const alpha =
+            particle.brightness * (0.6 + 0.4 * Math.sin(t * 1.5 + particle.phase));
 
-          ctx!.beginPath();
-          ctx!.arc(p.x, p.y, r, 0, Math.PI * 2);
-          ctx!.fillStyle = `rgba(${cr},${cg},${cb},${a})`;
-          ctx!.fill();
+          particleVertices.push(
+            particle.x,
+            particle.y,
+            size,
+            particleColor[0] / 255,
+            particleColor[1] / 255,
+            particleColor[2] / 255,
+            clamp01(alpha),
+          );
         }
       }
 
-      /* Scanlines */
-      ctx!.fillStyle = rgba(palette.fg, SCANLINE_ALPHA);
-      for (let sy = 0; sy < h; sy += 4) {
-        ctx!.fillRect(0, sy, w, 1);
+      for (let scanY = 0; scanY < h; scanY += 4) {
+        const nextY = Math.min(h, scanY + 1);
+        pushColorVertex(scanlineVertices, 0, scanY, palette.fg, SCANLINE_ALPHA);
+        pushColorVertex(scanlineVertices, w, scanY, palette.fg, SCANLINE_ALPHA);
+        pushColorVertex(scanlineVertices, w, nextY, palette.fg, SCANLINE_ALPHA);
+
+        pushColorVertex(scanlineVertices, 0, scanY, palette.fg, SCANLINE_ALPHA);
+        pushColorVertex(scanlineVertices, w, nextY, palette.fg, SCANLINE_ALPHA);
+        pushColorVertex(scanlineVertices, 0, nextY, palette.fg, SCANLINE_ALPHA);
       }
 
-      /* Mouse glow */
-      if (mouseX > 0 && mouseY > 0) {
-        const mgr = scaledMouseRadius * 1.2;
-        const mg = ctx!.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, mgr);
-        mg.addColorStop(0, rgba(mixColor(palette.fg, palette.accent, 0.42), 0.05));
-        mg.addColorStop(0.45, rgba(palette.fg, 0.015));
-        mg.addColorStop(1, "rgba(0,0,0,0)");
-        ctx!.beginPath();
-        ctx!.arc(mouseX, mouseY, mgr, 0, Math.PI * 2);
-        ctx!.fillStyle = mg;
-        ctx!.fill();
-      }
-
-      /* Harder shockwave rings */
       for (let i = 0; i < shockwaves.length; i++) {
         const age = t - shockwaves[i].time;
         const progress = clamp01(age / SHOCKWAVE_DURATION);
         const radius = progress * SHOCKWAVE_SPEED * dpr;
         const alpha = (1 - progress) * SHOCKWAVE_DRAW_ALPHA;
+        const outerRadius = radius + SHOCKWAVE_DRAW_WIDTH * dpr;
+        const innerRadius = Math.max(0, radius - SHOCKWAVE_DRAW_WIDTH * dpr);
+        const innerHighlightOuter = Math.max(0, radius - 13 * dpr);
+        const innerHighlightInner = Math.max(0, innerHighlightOuter - Math.max(1, dpr));
 
-        ctx!.beginPath();
-        ctx!.arc(shockwaves[i].x, shockwaves[i].y, radius, 0, Math.PI * 2);
-        ctx!.strokeStyle = rgba(palette.accent, alpha);
-        ctx!.lineWidth = SHOCKWAVE_DRAW_WIDTH * dpr;
-        ctx!.stroke();
-
-        ctx!.beginPath();
-        ctx!.arc(shockwaves[i].x, shockwaves[i].y, Math.max(0, radius - 14 * dpr), 0, Math.PI * 2);
-        ctx!.strokeStyle = rgba(palette.fg, alpha * 0.6);
-        ctx!.lineWidth = Math.max(1, dpr);
-        ctx!.stroke();
+        pushRing(
+          shockwaveVertices,
+          shockwaves[i].x,
+          shockwaves[i].y,
+          innerRadius,
+          outerRadius,
+          palette.accent,
+          alpha,
+        );
+        pushRing(
+          shockwaveVertices,
+          shockwaves[i].x,
+          shockwaves[i].y,
+          innerHighlightInner,
+          innerHighlightOuter,
+          palette.fg,
+          alpha * 0.6,
+        );
       }
 
-      /* Vignette */
-      const vx = w / 2;
-      const vy = h / 2;
-      const vRad = Math.max(w, h) * 0.7;
-      const vg = ctx!.createRadialGradient(vx, vy, vRad * 0.4, vx, vy, vRad);
-      vg.addColorStop(0, "rgba(0,0,0,0)");
-      vg.addColorStop(1, rgba(palette.bgRgb, VIGNETTE_ALPHA));
-      ctx!.fillStyle = vg;
-      ctx!.fillRect(0, 0, w, h);
+      drawMesh(glContext, meshProgram, meshBuffer, w, h, facetVertices);
+      drawMesh(glContext, meshProgram, meshBuffer, w, h, lineVertices);
+      drawPoints(glContext, pointProgram, pointBuffer, w, h, particleVertices);
+      drawMesh(glContext, meshProgram, meshBuffer, w, h, scanlineVertices);
 
-      raf = requestAnimationFrame(render);
+      if (mouseX > 0 && mouseY > 0) {
+        const glowRadius = scaledMouseRadius * 1.2;
+        glContext.blendFunc(glContext.SRC_ALPHA, glContext.ONE);
+        drawRadial(
+          glContext,
+          radialProgram,
+          radialBuffer,
+          w,
+          h,
+          mouseX - glowRadius,
+          mouseY - glowRadius,
+          mouseX + glowRadius,
+          mouseY + glowRadius,
+          mouseX,
+          mouseY,
+          glowRadius,
+          colorToVec4(mixColor(palette.fg, palette.accent, 0.42), 0.06),
+          colorToVec4(palette.fg, 0.016),
+          [0, 0, 0, 0],
+          0.45,
+        );
+        glContext.blendFunc(glContext.SRC_ALPHA, glContext.ONE_MINUS_SRC_ALPHA);
+      }
+
+      drawMesh(glContext, meshProgram, meshBuffer, w, h, shockwaveVertices);
+
+      const vignetteRadius = Math.max(w, h) * 0.7;
+      drawRadial(
+        glContext,
+        radialProgram,
+        radialBuffer,
+        w,
+        h,
+        0,
+        0,
+        w,
+        h,
+        w * 0.5,
+        h * 0.5,
+        vignetteRadius,
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        colorToVec4(palette.bgRgb, VIGNETTE_ALPHA),
+        0.4,
+      );
+
+      raf = window.requestAnimationFrame(render);
     }
 
+    updatePalette();
+    resize();
+
+    const themeObserver = new MutationObserver(() => {
+      updatePalette();
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].color = i % 5 === 0 ? palette.fgDim : palette.fg;
+      }
+    });
+
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "style"],
+    });
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseleave", onMouseLeave);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("click", onClick);
+
+    const startTime = performance.now();
     render();
 
     return () => {
-      cancelAnimationFrame(raf);
+      window.cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseleave", onMouseLeave);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("click", onClick);
       themeObserver.disconnect();
+
+      glContext.deleteBuffer(meshBuffer);
+      glContext.deleteBuffer(pointBuffer);
+      glContext.deleteBuffer(radialBuffer);
+      glContext.deleteProgram(meshProgram.program);
+      glContext.deleteProgram(pointProgram.program);
+      glContext.deleteProgram(radialProgram.program);
     };
   }, []);
 

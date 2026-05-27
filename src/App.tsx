@@ -18,7 +18,7 @@ export default function App() {
             <About />
             <Contact />
             <footer className="footer section-frame">
-              <p>&copy; 2026 // Built with React, TypeScript &amp; HTML Canvas Graphics</p>
+              <p>&copy; 2026 // Built with React, TypeScript &amp; WebGL</p>
             </footer>
           </main>
         </div>
