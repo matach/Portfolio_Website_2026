@@ -66,6 +66,44 @@ const PROJECTS: Project[] = [
     color: "#ffffff",
   },
   {
+    title: "Flow Field Studies",
+    description:
+      "A vvvv generative-art study exploring flow fields through traced lines, producing organic ribbons, contour-like structures, and delicate motion studies.",
+    longDescription:
+      "Flow Field Studies is a generative art project I built in vvvv. I used flow-field driven line tracing to explore how small parameter changes could create very different visual families, from feathered arcs and sweeping ribbons to denser topographic structures. The focus was on iteration, composition, and finding outputs that felt intentional rather than noisy.",
+    role: "Creative Coding / Generative Art",
+    status: "Experimental",
+    images: [
+      projectImage("flowfield-01.png"),
+      projectImage("flowfield-02.png"),
+      projectImage("flowfield-03.png"),
+      projectImage("flowfield-04.png"),
+      projectImage("flowfield-05.png"),
+      projectImage("flowfield-06.png"),
+      projectImage("flowfield-07.png"),
+      projectImage("flowfield-08.png"),
+      projectImage("flowfield-09.png"),
+      projectImage("flowfield-10.png"),
+      projectImage("flowfield-11.png"),
+    ],
+    features: [
+      "Flow-field driven line tracing with layered accumulation",
+      "Distinct visual presets ranging from organic ribbons to contour-like cells",
+      "High-contrast compositions curated from iterative parameter exploration",
+      "Fast experimentation workflow for density, curvature, spacing, and balance",
+    ],
+    tags: ["vvvv", "Generative Art", "Creative Coding", "Flow Fields"],
+    responsibilities: [
+      "Built the vvvv setup for field generation and line tracing",
+      "Explored parameter sets to produce distinct visual behaviors",
+      "Curated the strongest stills into a cohesive visual series",
+    ],
+    tools: ["vvvv", "Procedural systems", "2D composition", "Parameter exploration"],
+    challenge:
+      "Finding parameter ranges that produced expressive, readable forms instead of results that felt random or repetitive.",
+    color: "#ffffff",
+  },
+  {
     title: "Vambrace",
     description:
       "Frame-by-frame combat authoring tool for a fighting game prototype, built to help designers preview, edit, and test move data more quickly.",
