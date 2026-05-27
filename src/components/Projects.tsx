@@ -87,7 +87,7 @@ const PROJECTS: Project[] = [
       projectImage("flowfield-11.png"),
     ],
     features: [
-      "Flow-field driven line tracing with layered accumulation",
+      "Curl and simplex field studies in vvvv",
       "Distinct visual presets ranging from organic ribbons to contour-like cells",
       "High-contrast compositions curated from iterative parameter exploration",
       "Fast experimentation workflow for density, curvature, spacing, and balance",
@@ -391,12 +391,27 @@ function ProjectDetail({
   onBack: () => void;
 }) {
   const backRef = useRef<HTMLButtonElement>(null);
+  const artRef = useRef<HTMLDivElement>(null);
   const dragStartXRef = useRef<number | null>(null);
+  const dragLastXRef = useRef(0);
+  const dragLastTimeRef = useRef(0);
+  const dragVelocityRef = useRef(0);
+  const pendingSlideDirectionRef = useRef<-1 | 0 | 1>(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [frameWidth, setFrameWidth] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isSettling, setIsSettling] = useState(false);
   const images = project.images ?? [];
   const activeImage = images[activeImageIndex];
   const hasMultipleImages = images.length > 1;
+  const prevImage = hasMultipleImages
+    ? images[(activeImageIndex - 1 + images.length) % images.length]
+    : null;
+  const nextImage = hasMultipleImages
+    ? images[(activeImageIndex + 1) % images.length]
+    : null;
+  const canSwipeImages = hasMultipleImages && frameWidth > 0;
 
   const handlePrevImage = useCallback(() => {
     if (!hasMultipleImages) return;
@@ -412,10 +427,35 @@ function ProjectDetail({
     backRef.current?.focus();
   }, []);
 
+  const updateFrameWidth = useCallback(() => {
+    const art = artRef.current;
+    if (!art) return;
+
+    const style = window.getComputedStyle(art);
+    const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    setFrameWidth(Math.max(0, art.clientWidth - paddingX));
+  }, []);
+
+  useEffect(() => {
+    updateFrameWidth();
+
+    if (typeof ResizeObserver === "undefined" || !artRef.current) return;
+
+    const observer = new ResizeObserver(() => updateFrameWidth());
+    observer.observe(artRef.current);
+    return () => observer.disconnect();
+  }, [updateFrameWidth]);
+
   useEffect(() => {
     setActiveImageIndex(0);
     setDragOffset(0);
+    setIsDragging(false);
+    setIsSettling(false);
     dragStartXRef.current = null;
+    dragLastXRef.current = 0;
+    dragLastTimeRef.current = 0;
+    dragVelocityRef.current = 0;
+    pendingSlideDirectionRef.current = 0;
   }, [project]);
 
   useEffect(() => {
@@ -428,40 +468,146 @@ function ProjectDetail({
     return () => window.removeEventListener("keydown", handleKey);
   }, [onBack, handlePrevImage, handleNextImage]);
 
+  const clearDragTracking = () => {
+    dragStartXRef.current = null;
+    dragLastXRef.current = 0;
+    dragLastTimeRef.current = 0;
+    dragVelocityRef.current = 0;
+  };
+
+  const settleCarousel = useCallback(
+    (direction: -1 | 0 | 1) => {
+      pendingSlideDirectionRef.current = direction;
+      clearDragTracking();
+      setIsDragging(false);
+
+      if (direction === 0 && Math.abs(dragOffset) < 2) {
+        setIsSettling(false);
+        setDragOffset(0);
+        return;
+      }
+
+      setIsSettling(true);
+
+      if (direction === 0 || frameWidth === 0) {
+        setDragOffset(0);
+        return;
+      }
+
+      setDragOffset(direction === 1 ? -frameWidth : frameWidth);
+    },
+    [dragOffset, frameWidth],
+  );
+
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!hasMultipleImages) return;
+    if (!canSwipeImages || isSettling || e.button !== 0) return;
+
+    const now = performance.now();
     dragStartXRef.current = e.clientX;
+    dragLastXRef.current = e.clientX;
+    dragLastTimeRef.current = now;
+    dragVelocityRef.current = 0;
+    setIsDragging(true);
+    setIsSettling(false);
+    setDragOffset(0);
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (dragStartXRef.current === null) return;
-    setDragOffset(e.clientX - dragStartXRef.current);
+    if (dragStartXRef.current === null || isSettling) return;
+
+    const now = performance.now();
+    const deltaTime = now - dragLastTimeRef.current;
+    const deltaX = e.clientX - dragLastXRef.current;
+    const nextOffset = e.clientX - dragStartXRef.current;
+
+    if (deltaTime > 0) {
+      const velocity = deltaX / deltaTime;
+      dragVelocityRef.current = dragVelocityRef.current * 0.35 + velocity * 0.65;
+    }
+
+    dragLastXRef.current = e.clientX;
+    dragLastTimeRef.current = now;
+    setDragOffset(nextOffset);
   };
 
-  const onPointerUpOrCancel = () => {
+  const onPointerUpOrCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (dragStartXRef.current === null) return;
-    const threshold = 60;
-    if (dragOffset >= threshold) {
-      handlePrevImage();
-    } else if (dragOffset <= -threshold) {
-      handleNextImage();
+
+    const distanceThreshold = Math.max(70, Math.min(150, frameWidth * 0.16));
+    const velocityThreshold = 0.55;
+    const velocity = dragVelocityRef.current;
+
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
     }
-    dragStartXRef.current = null;
+
+    if (dragOffset <= -distanceThreshold || velocity <= -velocityThreshold) {
+      settleCarousel(1);
+      return;
+    }
+
+    if (dragOffset >= distanceThreshold || velocity >= velocityThreshold) {
+      settleCarousel(-1);
+      return;
+    }
+
+    settleCarousel(0);
+  };
+
+  const onCarouselTransitionEnd = () => {
+    if (!isSettling) return;
+
+    const direction = pendingSlideDirectionRef.current;
+    pendingSlideDirectionRef.current = 0;
+    setIsSettling(false);
     setDragOffset(0);
+
+    if (direction === 0) return;
+
+    setActiveImageIndex((i) => (i + direction + images.length) % images.length);
   };
 
   return (
     <div className="project-detail">
       <div
-        className={`project-detail__art${hasMultipleImages ? " project-detail__art--draggable" : ""}`}
-        style={{ "--drag-offset": `${dragOffset}px` } as CSSProperties}
+        ref={artRef}
+        className={`project-detail__art${canSwipeImages ? " project-detail__art--draggable" : ""}${isDragging ? " project-detail__art--dragging" : ""}${isSettling ? " project-detail__art--transitioning" : ""}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUpOrCancel}
         onPointerCancel={onPointerUpOrCancel}
       >
-        {activeImage ? (
+        {canSwipeImages ? (
+          <div
+            className="project-detail__carousel"
+            style={
+              {
+                transform: `translate3d(${dragOffset - frameWidth}px, 0, 0)`,
+              } as CSSProperties
+            }
+            onTransitionEnd={onCarouselTransitionEnd}
+          >
+            {[prevImage, activeImage, nextImage].map((image, index) => (
+              <div
+                key={`${image ?? "empty"}-${index}-${activeImageIndex}`}
+                className="project-detail__slide"
+                aria-hidden={index !== 1}
+              >
+                {image ? (
+                  <img
+                    src={image}
+                    alt={index === 1 ? `${project.title} preview ${activeImageIndex + 1}` : ""}
+                    loading="lazy"
+                    draggable={false}
+                  />
+                ) : (
+                  <span>ARTWORK SLOT</span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : activeImage ? (
           <img
             src={activeImage}
             alt={`${project.title} preview ${activeImageIndex + 1}`}
@@ -503,7 +649,7 @@ function ProjectDetail({
         [BACK]
       </button>
       {hasMultipleImages && (
-        <p className="project-detail__drag-hint">Drag image left/right to switch</p>
+        <p className="project-detail__drag-hint">Drag or swipe left/right to switch</p>
       )}
 
       <h2 className="project-detail__title">{project.title}</h2>

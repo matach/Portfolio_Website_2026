@@ -801,7 +801,6 @@ img {
 }
 
 .project-detail__art {
-  --drag-offset: 0px;
   min-height: 220px;
   border: var(--rule) solid var(--border-dim);
   background: var(--surface);
@@ -822,19 +821,37 @@ img {
   cursor: grab;
 }
 
-.project-detail__art--draggable:active {
+.project-detail__art--dragging {
   cursor: grabbing;
 }
 
-.project-detail__art img {
+.project-detail__carousel {
+  display: flex;
+  width: 100%;
+  will-change: transform;
+}
+
+.project-detail__art--transitioning .project-detail__carousel {
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.project-detail__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-detail__art > img,
+.project-detail__slide img {
   display: block;
   width: 100%;
   height: auto;
   max-height: min(72vh, 760px);
   object-fit: contain;
-  transform: translateX(var(--drag-offset));
-  transition: transform 0.15s ease;
   user-select: none;
+  pointer-events: none;
 }
 
 .project-detail__gallery-controls {
