@@ -31,12 +31,12 @@ const PROJECTS: Project[] = [
   {
     title: "Sonder",
     description:
-      "Water and readability work for a commercial project, including an interactive waterfall shader, Crest Water integration, and an outline shader for gameplay clarity.",
+      "Shader work for a Master's project I contributed to during my bachelor: an interactive waterfall, Crest Water integration, and an outline pass for cleaner gameplay readability.",
     longDescription:
-      "For Sonder, I built a waterfall shader with object interaction and integrated Crest Water into the rest of the scene. I also made an outline shader to improve silhouette readability during gameplay. The work was focused on keeping the visuals stylized while staying practical to tune and stable to run.",
+      "Sonder was a Master's project I helped with during my bachelor. I built a waterfall shader that reacts to objects, matched it with the rest of the water setup, and added an outline shader to help silhouettes read during play. Most of the work was about keeping the look stylized without making it fragile to tune.",
     role: "Shader / VFX Work",
     year: "2025",
-    status: "In Development",
+    status: "University Project",
     images: [
       projectImage("sonder-03.png"),
       projectImage("sonder-01.png"),
@@ -68,11 +68,11 @@ const PROJECTS: Project[] = [
   {
     title: "Flow Field Studies",
     description:
-      "A vvvv generative-art study exploring flow fields through traced lines, producing organic ribbons, contour-like structures, and delicate motion studies.",
+      "A generative art study in vvvv built around traced flow lines, from soft ribbon shapes to denser contour-like patterns.",
     longDescription:
-      "Flow Field Studies is a generative art project I built in vvvv. I used flow-field driven line tracing to explore how small parameter changes could create very different visual families, from feathered arcs and sweeping ribbons to denser topographic structures. The focus was on iteration, composition, and finding outputs that felt intentional rather than noisy.",
+      "This started as a series of flow-field experiments in vvvv. I kept pushing small parameter changes to see how far the visual language could shift, then curated the runs that felt composed rather than accidental.",
     role: "Creative Coding / Generative Art",
-    status: "Experimental",
+    status: "Creative Coding",
     images: [
       projectImage("flowfield-01.png"),
       projectImage("flowfield-02.png"),
@@ -106,9 +106,9 @@ const PROJECTS: Project[] = [
   {
     title: "Vambrace",
     description:
-      "Frame-by-frame combat authoring tool for a fighting game prototype, built to help designers preview, edit, and test move data more quickly.",
+      "A combat authoring tool for a fighting game prototype that let designers inspect, edit, and test move data frame by frame.",
     longDescription:
-      "For Vambrace, I built an editor tool for authoring moves and transitions frame by frame. The goal was to make combat tuning faster by letting designers inspect timing, preview behavior, and adjust data without hand-editing assets.",
+      "For Vambrace I made an editor tool for building moves and transitions frame by frame. The goal was simple: make combat iteration faster, so designers could preview timing and tweak behavior without digging through raw data.",
     role: "Tools Programmer (Combat Authoring)",
     year: "2024",
     status: "Prototype",
@@ -134,13 +134,18 @@ const PROJECTS: Project[] = [
   {
     title: "Archangel (VR)",
     description:
-      "Short narrative VR experience set in a World War I trench system, with pacing and environmental storytelling shaped across four gameplay sections.",
+      "A short VR narrative project set in a World War I trench system, where I handled section pacing and shader work for the painted look.",
     longDescription:
-      "Archangel is a short VR narrative project set in a World War I trench system. I worked on level design across four gameplay sections and created a fullscreen shader to support the painted visual style. The work combined pacing, readability, and atmosphere, especially in VR where comfort and clarity matter.",
+      "Archangel is a VR narrative piece set in a World War I trench system. I worked on the pacing and layout of four gameplay sections and built a fullscreen shader to support the painted visual style. In VR especially, a lot of the work came down to balancing atmosphere with clarity and comfort.",
     role: "Level Design / Shader Work",
     year: "2026",
-    status: "In Development",
-    images: [projectImage("archangel-01.png"), projectImage("archangel-02.png")],
+    status: "University Project",
+    images: [
+      projectImage("archangel-01.png"),
+      projectImage("archangel-02.png"),
+      projectImage("archangel-03.png"),
+      projectImage("archangel-04.png"),
+    ],
     features: [
       "Level design for four gameplay sections with deliberate pacing progression",
       "Early concept contribution for mood, tone, and visual direction",
@@ -161,20 +166,25 @@ const PROJECTS: Project[] = [
   {
     title: "Asteraid",
     description:
-      "Prototype work covering mobile VFX, a procedural skybox tool, and a multi-threaded gravity simulation built with performance in mind.",
+      "My diploma thesis project: a mobile artillery shooter built around gravity physics, plus supporting VFX and tools work.",
     longDescription:
-      "For Asteraid, I worked on several systems: impact VFX, a procedural skybox tool, and a multi-threaded n-body gravity simulation. The main challenge was keeping the work practical for mobile performance while still giving enough visual and gameplay feedback.",
-    role: "Gameplay / Tools / VFX",
+      "Asteraid was my diploma thesis project. It was a mobile artillery shooter built around gravity physics, and my work covered both the core systems and the supporting presentation: impact VFX, a procedural skybox tool, and a multithreaded gravity simulation. A big part of the project was making those systems work well on mobile without losing responsiveness or readability.",
+    role: "Gameplay / Physics / Tools / VFX",
     year: "2022",
-    status: "Prototype",
+    status: "Diploma Thesis Project",
     images: [
-      projectImage("asteraid-01.png"),
       projectImage("asteraid-02.png"),
+      projectImage("asteraid-06.gif"),
+      projectImage("asteraid-07.gif"),
+      projectImage("asteraid-08.gif"),
+      projectImage("asteraid-09.gif"),
+      projectImage("asteraid-01.png"),
       projectImage("asteraid-03.png"),
       projectImage("asteraid-04.png"),
       projectImage("asteraid-05.png"),
     ],
     features: [
+      "Mobile artillery-shooter gameplay built around gravity-driven trajectories",
       "Impact and fragment shaders with controllable intensity and falloff",
       "Stylized breakup visuals tuned for readability at scale",
       "Procedural skybox generation tool with editor UI and fast iteration",
@@ -184,24 +194,25 @@ const PROJECTS: Project[] = [
     ],
     tags: ["Unity", "C#", "Mobile", "Threading"],
     responsibilities: [
+      "Worked on gameplay and gravity-based systems for the artillery core",
       "Built impact VFX and related shader work",
       "Created the procedural skybox generation tool",
       "Implemented the multi-threaded gravity simulation",
     ],
-    tools: ["Unity", "C#", "Threading", "Shader work", "Editor tooling"],
+    tools: ["Unity", "C#", "Physics systems", "Threading", "Shader work", "Editor tooling"],
     challenge:
-      "Making multiple systems run well enough for mobile while still giving clear visual feedback.",
+      "Making the gravity-heavy gameplay and supporting systems run smoothly on mobile while keeping the feedback readable.",
     color: "#ffffff",
   },
   {
     title: "Long Way Off",
     description:
-      "Iron Lung-inspired horror game where the player pilots a failing spaceship through a simulated retro 80s-style control panel operating system.",
+      "A retro-futurist horror prototype where the player pilots a failing ship through a fake 80s-style operating system.",
     longDescription:
-      "Long Way Off is a horror project where the player controls a failing spaceship through a simulated retro operating system. I built the in-game OS, including the file system and interactive programs, and also handled gameplay code, the save system, CRT screen shading, and post-processing.",
+      "Long Way Off is a horror prototype built around a simulated operating system instead of a traditional HUD. I worked on the in-game OS, its file system and programs, plus gameplay code, save logic, CRT shading, and post-processing.",
     role: "Gameplay Programmer / Shader Work",
     year: "2025",
-    status: "Prototype",
+    status: "University Project",
     images: [projectImage("longwayoff-01.png"), projectImage("longwayoff-02.png")],
     features: [
       "Fully simulated in-game operating system",
@@ -224,9 +235,9 @@ const PROJECTS: Project[] = [
   {
     title: "M/M",
     description:
-      "Split-screen 1v1 game jam project where one player runs an obstacle course while the other monitors cameras and sabotages with traps.",
+      "A split-screen 1v1 jam game where one player runs the course and the other watches through cameras and sabotages with traps.",
     longDescription:
-      "M/M was created for Hagenberg GameJam 2023. It is a split-screen 1v1 game: Player 1 tries to complete an obstacle course while Player 2 monitors them over camera feeds and triggers traps to slow them down. I programmed the movement controller for the player navigating the obstacle course, focusing on responsive controls and consistent feel under pressure, and I also helped teammates who were newer to programming.",
+      "M/M was made for Hagenberg GameJam 2023. One player tries to finish an obstacle course while the other watches through camera feeds and triggers traps. I built the runner's movement controller and helped out teammates who were newer to programming.",
     role: "Gameplay Programmer (Player Controller)",
     year: "2023",
     status: "GameJam",
@@ -257,9 +268,9 @@ const PROJECTS: Project[] = [
   {
     title: "One Night at Furbys",
     description:
-      "FNaF-style horror game jam project where my contribution was level design.",
+      "A Five Nights at Freddy's-inspired game jam horror project where I focused on level design.",
     longDescription:
-      "One Night at Furbys was created for the 2024 Hagenberg GameJam. It is a Five Nights at Freddy's style horror game where the player starts a new night-guard job in a toy store and discovers the furbys are cursed. The core objective is to survive until morning while managing threats and tension. My role on this project was level design.",
+      "One Night at Furbys was made for Hagenberg GameJam 2024. It's a toy-store horror game inspired by Five Nights at Freddy's, and my part was the level design: shaping sightlines, room layout, and the overall pressure of the space.",
     role: "Level Designer",
     year: "2024",
     status: "GameJam",

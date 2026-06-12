@@ -15,9 +15,9 @@ export default function HeroContent() {
             <span className="hero-content__title-line">&amp; VFX Artist</span>
           </h1>
           <p className="hero-content__subtitle">
-            I build gameplay systems, tools, shaders, and effects in Unity and
-            Unreal Engine, with a focus on atmosphere, visual feedback, and
-            clear implementation.
+            I make gameplay systems, tools, shaders, and VFX in Unity and
+            Unreal. I care most about work that feels good to use, reads
+            clearly on screen, and supports the mood of the game.
           </p>
           <div className="hero-content__cta">
             <a href="#projects" className="btn btn--primary">
@@ -38,7 +38,7 @@ export default function HeroContent() {
             <div className="hero-content__panel-item">
               <span className="hero-content__panel-key">Focus</span>
               <span className="hero-content__panel-value">
-                Gameplay systems, VFX, shaders
+                Gameplay systems, tools, shaders
               </span>
             </div>
             <div className="hero-content__panel-item">
@@ -48,7 +48,7 @@ export default function HeroContent() {
             <div className="hero-content__panel-item">
               <span className="hero-content__panel-key">Status</span>
               <span className="hero-content__panel-value">
-                Seeking gameplay programming and VFX internships
+                Looking for gameplay programming or VFX internships
               </span>
             </div>
             <div className="hero-content__panel-item">

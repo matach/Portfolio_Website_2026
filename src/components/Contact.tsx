@@ -35,10 +35,10 @@ export default function Contact() {
     <section className="contact" id="contact">
       <div className="section-container">
         <p className="section-label">Contact</p>
-        <h2 className="section-title">Let's Build Something</h2>
+        <h2 className="section-title">Get In Touch</h2>
         <p className="contact__subtitle">
-          If you are hiring for a gameplay programming or VFX internship, feel
-          free to reach out by email or through the form below.
+          If you&apos;re hiring for gameplay programming or real-time VFX, or you
+          just want to talk about a project, send me a message.
         </p>
 
         <div className="contact__wrapper">
@@ -47,7 +47,7 @@ export default function Contact() {
               <div className="contact__success-icon">&gt; OK</div>
               <h3>Email Draft Opened</h3>
               <p>
-                Your email app should open with a prefilled draft to {CONTACT_EMAIL}.
+                Your mail app should open with a draft addressed to {CONTACT_EMAIL}.
               </p>
             </div>
           ) : (
@@ -76,13 +76,13 @@ export default function Contact() {
               </div>
               <div className="contact__field">
                 <label htmlFor="subject">&gt; subject:</label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  placeholder="What's this about?"
-                  required
-                />
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    placeholder="What are you reaching out about?"
+                    required
+                  />
               </div>
               <div className="contact__field">
                 <label htmlFor="message">&gt; message:</label>
@@ -90,7 +90,7 @@ export default function Contact() {
                   id="message"
                   name="message"
                   rows={6}
-                  placeholder="Tell me about your project..."
+                  placeholder="Tell me a bit about the project, role, or idea..."
                   required
                 />
               </div>

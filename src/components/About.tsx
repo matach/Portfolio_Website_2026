@@ -1,17 +1,17 @@
 import profilePhoto from "../assets/profile-photo.png";
 
 const CAPABILITIES = [
-  "Gameplay systems and tools in Unity/C# and Unreal Engine workflows",
-  "Shader development with Shader Graph, HLSL, and post-processing",
-  "Real-time VFX focused on readability and feedback",
-  "Production-minded implementation including save systems and tooling support",
+  "Gameplay systems, tools, and editor workflows in Unity/C# and Unreal",
+  "Shaders and post-processing in Shader Graph and HLSL",
+  "Real-time VFX that supports readability, timing, and feel",
+  "Production-friendly implementation, tuning, and debugging support",
 ];
 
 const WORK_STYLE = [
-  "I try to keep systems easy to test, tune, and maintain.",
-  "I like building tools when they remove repetitive work for the team.",
-  "I pay attention to readability, game feel, and performance together.",
-  "I work best when I can collaborate closely with design and art.",
+  "I like keeping systems easy to tune, test, and hand off.",
+  "If a workflow gets repetitive, I usually want to build a tool for it.",
+  "I care about readability, feel, and performance at the same time.",
+  "I like working closely with design and art instead of treating them as separate lanes.",
 ];
 
 const CURRENT_FOCUS = [
@@ -41,24 +41,24 @@ export default function About() {
               <div>
                 <p className="about__kicker">Gameplay Programming + Real-Time VFX</p>
                 <p className="about__role">
-                  Building player-facing systems and supporting them with clear visuals
+                  Gameplay programmer with a soft spot for shaders and VFX
                 </p>
-                <p className="about__meta">Looking for internships - Remote or hybrid</p>
+                <p className="about__meta">Looking for internships - remote or hybrid</p>
               </div>
             </header>
 
             <div className="about__body">
               <p>
-                I&apos;m a gameplay programmer and VFX artist with experience building
-                gameplay features, shaders, tools, and post-processing work for
-                student, prototype, and team projects in Unity and Unreal Engine.
+                I&apos;m a gameplay programmer and VFX artist based in Austria. Most
+                of my work so far has been in student projects, game jams, and
+                small team productions built in Unity and Unreal.
               </p>
               <p>
-                The part of development I enjoy most is turning an idea into
-                something playable and readable on screen, whether that means
-                writing gameplay code, building a tool, or making shader and
-                effects work that helps set the mood and communicate information
-                to the player more clearly.
+                What I enjoy most is the point where mechanics and presentation
+                meet. Sometimes that means gameplay code or editor tooling,
+                sometimes a shader or an effect, but the goal is usually the
+                same: make the game easier to read, better to tune, and more
+                satisfying to play.
               </p>
             </div>
           </article>
@@ -89,9 +89,9 @@ export default function About() {
               ))}
             </ul>
             <p className="about__footnote">
-              I&apos;m currently looking for internships where I can contribute to
-              gameplay programming or real-time VFX and keep growing in a
-              production environment.
+              I&apos;m looking for a place where I can contribute to gameplay
+              programming or real-time VFX, learn from experienced teammates,
+              and keep getting sharper in production.
             </p>
           </article>
         </div>

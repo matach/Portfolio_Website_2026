@@ -126,6 +126,10 @@ img {
   transform: translateX(calc(var(--section-offset) * -0.55));
 }
 
+.studies .section-container {
+  transform: translateX(calc(var(--section-offset) * 0.35));
+}
+
 .contact .section-container {
   transform: translateX(calc(var(--section-offset) * 0.7));
 }
@@ -1067,6 +1071,92 @@ img {
 }
 
 /* ============================================
+   Visual Studies
+   ============================================ */
+.studies {
+  padding: var(--section-padding) 0;
+  background: transparent;
+}
+
+.studies__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.study-card {
+  border: var(--rule) solid var(--fg);
+  background: var(--panel-bg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.study-card__art {
+  border: var(--rule) solid var(--border-dim);
+  background: var(--surface);
+  padding: 14px;
+}
+
+.study-card__art--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.study-card__art--stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.study-card__art img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.study-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.study-card__kicker {
+  color: var(--fg-dim);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  margin: 0;
+}
+
+.study-card__title {
+  color: var(--fg);
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.study-card__link {
+  align-self: flex-start;
+  border: var(--rule) solid var(--fg);
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s;
+}
+
+.study-card__link:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* ============================================
    About
    ============================================ */
 .about {
@@ -1433,12 +1523,17 @@ img {
   }
 
   .projects .section-container,
+  .studies .section-container,
   .about .section-container,
   .contact .section-container {
     transform: none;
   }
 
   .projects__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .studies__grid {
     grid-template-columns: 1fr;
   }
 
@@ -1581,5 +1676,9 @@ img {
 
   .project-detail__summary-block--wide {
     grid-column: auto;
+  }
+
+  .study-card__art--grid {
+    grid-template-columns: 1fr;
   }
 }

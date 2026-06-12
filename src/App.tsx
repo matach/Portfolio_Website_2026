@@ -2,6 +2,7 @@ import BackgroundCanvas from "./components/BackgroundCanvas";
 import Navbar from "./components/Navbar";
 import HeroContent from "./components/HeroContent";
 import Projects from "./components/Projects";
+import VisualStudies from "./components/VisualStudies";
 import About from "./components/About";
 import Contact from "./components/Contact";
 
@@ -15,6 +16,7 @@ export default function App() {
           <main className="page-main">
             <HeroContent />
             <Projects />
+            <VisualStudies />
             <About />
             <Contact />
             <footer className="footer section-frame">
